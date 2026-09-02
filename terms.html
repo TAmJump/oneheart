@@ -10,13 +10,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#191919;
-    --dim:#5d5a55;
-    --gold:#96760f;
-    --coral:#c2543f;
-    --line:#c7c3bc;
-    --bg:#e4e2dd;
-    --panel:#efedea;
+    --ink:#111111;
+    --dim:#3a3527;
+    --gold:#111111;
+    --coral:#E53935;
+    --line:#111111;
+    --bg:#FFD900;
+    --panel:#FFF3A8;
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
@@ -29,15 +29,15 @@
     line-height:1.75;
     letter-spacing:.005em;
   }
-  a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(150,118,15,.35)}
+  a{color:#111;text-decoration:none;border-bottom:2px solid var(--coral)}
   a:hover{border-bottom-color:var(--gold)}
   .wrap{max-width:760px;margin:0 auto;padding:0 24px}
 
-  .topnav{border-bottom:1px solid var(--line);padding:18px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+  .topnav{border-bottom:3px solid var(--ink);padding:18px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
   .topnav a{border-bottom:0;color:var(--ink)}
   .topnav a:hover{color:var(--gold)}
-  header{border-bottom:1px solid var(--line);padding:56px 0 44px}
-  .strip{margin:34px 0 0;border:1px solid var(--line);background:#111}
+  header{border-bottom:3px solid var(--ink);padding:56px 0 44px}
+  .strip{margin:34px 0 0;border:3px solid var(--ink);background:#111}
   .strip img{display:block;width:100%;height:auto}
   .eyebrow{
     font-size:11px;letter-spacing:.22em;text-transform:uppercase;
@@ -54,7 +54,7 @@
   .meta strong{color:var(--ink);font-weight:600}
 
   main{padding:8px 0 24px}
-  section{padding:36px 0;border-bottom:1px solid var(--line)}
+  section{padding:36px 0;border-bottom:2px solid var(--ink)}
   section:last-of-type{border-bottom:0}
   h2{
     font-size:19px;font-weight:700;margin:0 0 14px;letter-spacing:-.01em;
@@ -74,7 +74,7 @@
   }
   .note strong{color:var(--ink);font-weight:600}
   .consent{
-    background:var(--panel);border:1px solid var(--line);
+    background:var(--panel);border:3px solid var(--ink);
     padding:18px 22px;margin:16px 0 0;font-size:15px;color:var(--ink)
   }
 
@@ -82,8 +82,8 @@
     background:var(--ink);color:#b8b4ad;padding:44px 0 56px;
     font-size:13px;line-height:1.9;margin-top:16px
   }
-  footer a{color:#d9c37a;border-bottom:0}
-  footer .brand{color:#f2f0ec;font-weight:700;letter-spacing:.02em;font-size:15px;margin-bottom:6px}
+  footer a{color:#FFD900;border-bottom:0}
+  footer .brand{color:#FFD900;font-weight:700;letter-spacing:.02em;font-size:15px;margin-bottom:6px}
 
   @media (max-width:560px){
     header{padding:40px 0 32px}
