@@ -10,12 +10,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#f4f1ea;
-    --dim:#a9a49a;
-    --gold:#c9a227;
-    --line:#2a2a2a;
-    --bg:#0b0b0b;
-    --panel:#131313;
+    --ink:#191919;
+    --dim:#5d5a55;
+    --gold:#96760f;
+    --coral:#c2543f;
+    --line:#c7c3bc;
+    --bg:#e4e2dd;
+    --panel:#efedea;
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
@@ -28,11 +29,16 @@
     line-height:1.75;
     letter-spacing:.005em;
   }
-  a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(201,162,39,.35)}
+  a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(150,118,15,.35)}
   a:hover{border-bottom-color:var(--gold)}
   .wrap{max-width:760px;margin:0 auto;padding:0 24px}
 
-  header{border-bottom:1px solid var(--line);padding:56px 0 40px}
+  .topnav{border-bottom:1px solid var(--line);padding:18px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+  .topnav a{border-bottom:0;color:var(--ink)}
+  .topnav a:hover{color:var(--gold)}
+  header{border-bottom:1px solid var(--line);padding:56px 0 44px}
+  .strip{margin:34px 0 0;border:1px solid var(--line);background:#111}
+  .strip img{display:block;width:100%;height:auto}
   .eyebrow{
     font-size:11px;letter-spacing:.22em;text-transform:uppercase;
     color:var(--gold);font-weight:600;margin:0 0 18px
@@ -63,7 +69,7 @@
   ul{margin:0 0 14px;padding-left:22px}
   li{margin:0 0 8px}
   .note{
-    background:var(--panel);border-left:2px solid var(--gold);
+    background:var(--panel);border-left:3px solid var(--coral);
     padding:18px 22px;margin:18px 0 0;color:var(--dim);font-size:15px
   }
   .note strong{color:var(--ink);font-weight:600}
@@ -73,10 +79,11 @@
   }
 
   footer{
-    border-top:1px solid var(--line);padding:36px 0 64px;
-    color:var(--dim);font-size:13px;line-height:1.9
+    background:var(--ink);color:#b8b4ad;padding:44px 0 56px;
+    font-size:13px;line-height:1.9;margin-top:16px
   }
-  footer .brand{color:var(--ink);font-weight:600;letter-spacing:.02em}
+  footer a{color:#d9c37a;border-bottom:0}
+  footer .brand{color:#f2f0ec;font-weight:700;letter-spacing:.02em;font-size:15px;margin-bottom:6px}
 
   @media (max-width:560px){
     header{padding:40px 0 32px}
@@ -88,6 +95,10 @@
 </head>
 <body>
 
+<div class="topnav">
+  <div class="wrap"><a href="/">&larr; One Heart Project</a></div>
+</div>
+
 <header>
   <div class="wrap">
     <p class="eyebrow">One Heart Project</p>
@@ -98,6 +109,7 @@
       <strong>Operated by:</strong> TAmJ Inc., Tokyo, Japan<br>
       <strong>Contact:</strong> <a href="mailto:info@tamjump.com">info@tamjump.com</a>
     </div>
+    <figure class="strip"><img src="images/23grid.jpg" alt="The 23 artworks of the ONE HEART PROJECT"></figure>
   </div>
 </header>
 

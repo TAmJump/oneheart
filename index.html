@@ -5,61 +5,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ONE HEART PROJECT — 23 Pieces, One World</title>
 <meta name="description" content="A participatory mosaic art project. One portrait becomes one piece. 23 artworks, built by the people inside them.">
+<meta property="og:title" content="ONE HEART PROJECT — 23 Pieces, One World">
+<meta property="og:description" content="One portrait becomes one piece. 23 artworks, built by the people inside them.">
+<meta property="og:image" content="https://oneheart.tamjump.com/images/23grid.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#f4f1ea;
-    --dim:#a9a49a;
-    --gold:#c9a227;
-    --line:#2a2a2a;
-    --bg:#0b0b0b;
-    --panel:#131313;
+    --bg:#e4e2dd;
+    --bg-alt:#dbd8d2;
+    --panel:#efedea;
+    --ink:#191919;
+    --dim:#5d5a55;
+    --line:#c7c3bc;
+    --gold:#96760f;
+    --coral:#c2543f;
   }
   *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
   body{
     margin:0;background:var(--bg);color:var(--ink);
     font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    line-height:1.75;
+    line-height:1.75;font-size:16px;
   }
+  img{display:block;width:100%;height:auto}
   a{color:var(--gold);text-decoration:none}
-  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  .narrow{max-width:720px}
 
-  .hero{padding:96px 0 72px;border-bottom:1px solid var(--line)}
-  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0 0 20px}
-  h1{font-size:52px;line-height:1.08;margin:0 0 22px;font-weight:800;letter-spacing:-.02em}
-  h1 .accent{color:var(--gold)}
-  .lede{color:var(--dim);font-size:17px;margin:0;max-width:44em}
+  .eyebrow{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--gold);font-weight:700;margin:0 0 18px
+  }
 
-  .stats{display:flex;gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .stat{flex:1 1 200px;padding:28px 24px;border-right:1px solid var(--line)}
+  .hero{padding:88px 0 0}
+  h1{font-size:60px;line-height:1.04;margin:0 0 24px;font-weight:800;letter-spacing:-.025em}
+  h1 .accent{color:var(--coral)}
+  .lede{color:var(--dim);font-size:17px;margin:0;max-width:40em}
+
+  .hero-art{margin-top:56px;position:relative}
+  .hero-art .block{
+    position:absolute;left:-28px;top:36px;width:46%;height:76%;
+    background:var(--coral);opacity:.14;z-index:0
+  }
+  .hero-art figure{position:relative;z-index:1;margin:0;border:1px solid var(--line);background:#111}
+
+  .stats{display:flex;flex-wrap:wrap;margin:0;border-bottom:1px solid var(--line)}
+  .stat{flex:1 1 190px;padding:30px 24px 30px 0;border-right:1px solid var(--line)}
   .stat:last-child{border-right:0}
-  .stat .n{font-size:32px;font-weight:800;letter-spacing:-.02em;color:var(--gold);line-height:1.1}
-  .stat .l{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+  .stat .n{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--gold)}
+  .stat .l{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:6px}
 
-  section{padding:56px 0;border-bottom:1px solid var(--line)}
-  h2{font-size:22px;font-weight:700;margin:0 0 16px;letter-spacing:-.01em}
-  p{margin:0 0 14px}
+  section{padding:76px 0}
+  section.alt{background:var(--bg-alt)}
+  h2{font-size:30px;font-weight:800;margin:0 0 18px;letter-spacing:-.02em;line-height:1.2}
+  p{margin:0 0 16px}
   .muted{color:var(--dim)}
 
-  .cta{
-    display:inline-block;margin-top:10px;padding:14px 28px;
-    border:1px solid var(--gold);color:var(--gold);
-    font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+  .split.rev .col-text{order:2}
+  .frame{margin:0;border:1px solid var(--line);background:#111;position:relative;z-index:1}
+  .frame.offset::before{
+    content:"";position:absolute;left:-18px;bottom:-18px;
+    width:62%;height:62%;background:var(--gold);opacity:.18;z-index:-1
   }
-  .cta:hover{background:var(--gold);color:#0b0b0b}
+  .caption{font-size:12px;color:var(--dim);margin-top:10px;letter-spacing:.02em}
 
-  .links{display:flex;gap:28px;flex-wrap:wrap;margin-top:8px}
-  .links a{font-size:14px;border-bottom:1px solid rgba(201,162,39,.35);padding-bottom:2px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:40px}
+  .card{background:var(--panel);border:1px solid var(--line)}
+  .card figure{margin:0;background:#111;border-bottom:1px solid var(--line)}
+  .card .body{padding:14px 16px 16px}
+  .card .no{font-size:11px;letter-spacing:.16em;color:var(--gold);font-weight:700}
+  .card .ttl{font-size:14px;font-weight:700;margin:2px 0 4px;letter-spacing:-.005em}
+  .card .sub{font-size:12px;color:var(--dim);line-height:1.6}
+  .card.final{outline:2px solid var(--coral);outline-offset:-2px}
 
-  footer{padding:44px 0 72px;color:var(--dim);font-size:13px;line-height:1.9}
-  footer .brand{color:var(--ink);font-weight:600;letter-spacing:.02em}
+  .cta{
+    display:inline-block;padding:16px 34px;background:var(--ink);color:#f2f0ec;
+    font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase
+  }
+  .cta:hover{background:var(--coral)}
+  .cta.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+  .cta.ghost:hover{background:var(--ink);color:#f2f0ec}
+  .cta-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:26px}
 
-  @media (max-width:560px){
-    .hero{padding:64px 0 48px}
-    h1{font-size:36px}
-    .stat{border-right:0;border-bottom:1px solid var(--line);flex:1 1 100%}
+  .price-row{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin-top:36px;background:var(--panel)}
+  .price{padding:26px 24px;border-right:1px solid var(--line)}
+  .price:last-child{border-right:0}
+  .price .amt{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .price .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px}
+  .price .d{font-size:13px;color:var(--dim);line-height:1.65;margin-top:8px}
+
+  footer{background:var(--ink);color:#b8b4ad;padding:56px 0;font-size:13px;line-height:1.9}
+  footer a{color:#d9c37a}
+  footer .brand{color:#f2f0ec;font-weight:700;letter-spacing:.02em;font-size:15px;margin-bottom:8px}
+  .fnav{display:flex;gap:24px;flex-wrap:wrap;margin-top:18px}
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(3,1fr)}
+    .split{grid-template-columns:1fr;gap:32px}
+    .split.rev .col-text{order:0}
+    h1{font-size:42px}
+    h2{font-size:25px}
+  }
+  @media (max-width:600px){
+    .wrap{padding:0 20px}
+    .hero{padding:56px 0 0}
+    h1{font-size:34px}
+    section{padding:52px 0}
+    .grid{grid-template-columns:repeat(2,1fr);gap:14px}
+    .price-row{grid-template-columns:1fr}
+    .price{border-right:0;border-bottom:1px solid var(--line)}
+    .price:last-child{border-bottom:0}
+    .hero-art .block{display:none}
+    .stat{flex:1 1 100%;border-right:0;border-bottom:1px solid var(--line);padding:20px 0}
     .stat:last-child{border-bottom:0}
   }
 </style>
@@ -71,6 +131,10 @@
     <p class="eyebrow">One Heart Project</p>
     <h1>We are all<br><span class="accent">one heart.</span></h1>
     <p class="lede">A participatory mosaic art project. Send one portrait photograph and it becomes one piece of an artwork built from thousands of others. Your face stays in the place it is given, and an artwork is finished only when every place in it is filled.</p>
+    <div class="hero-art">
+      <div class="block"></div>
+      <figure><img src="images/23grid.jpg" alt="The 23 artworks of the ONE HEART PROJECT"></figure>
+    </div>
   </div>
 </div>
 
@@ -79,42 +143,138 @@
     <div class="stat"><div class="n">23</div><div class="l">Artworks</div></div>
     <div class="stat"><div class="n">2,500</div><div class="l">Portraits per artwork</div></div>
     <div class="stat"><div class="n">60,000</div><div class="l">Pieces in total</div></div>
+    <div class="stat"><div class="n">¥500</div><div class="l">One entry, one piece</div></div>
   </div>
 </div>
 
-<main class="wrap">
-
-  <section>
-    <h2>22 faces, and one that holds them all</h2>
-    <p class="muted">Twenty-two artworks carry a face each — identity, wonder, love, courage, loss, hope, good and evil. The twenty-third is not another character. It is where the other twenty-two come together, and it is built from 5,000 portraits instead of 2,500. Read in order, the twenty-three trace one life.</p>
-  </section>
-
-  <section>
-    <h2>Two sides, one story</h2>
-    <p class="muted">Every piece has a reverse. The front carries your face; the back carries your name or initials. The reverse sides of all twenty-three artworks are built from names — and when they are turned over and brought together, they form another image entirely.</p>
-  </section>
-
-  <section>
-    <h2>Take part</h2>
-    <p class="muted">Participation opens on Kickstarter. One place is ¥500.</p>
-    <a class="cta" href="https://www.kickstarter.com/projects/248635044/1654775797">View on Kickstarter</a>
-  </section>
-
-  <section>
-    <h2>Documents</h2>
-    <div class="links">
-      <a href="terms.html">Participation Terms</a>
-      <a href="mailto:info@tamjump.com">Contact</a>
+<section>
+  <div class="wrap">
+    <div class="split">
+      <div class="col-text">
+        <p class="eyebrow">How one artwork is made</p>
+        <h2>One photo becomes one piece.</h2>
+        <p class="muted">Choose an artwork. Back it with ¥500. Send one portrait photograph. Your photo is placed as a single piece and stays in that position. When all 2,500 places are filled, the artwork is completed and delivered to everyone inside it.</p>
+        <p class="muted">Nothing is generated to fill a gap. Every piece is a real person.</p>
+      </div>
+      <div>
+        <figure class="frame offset"><img src="images/heartbeat.jpg" alt="A heart formed from thousands of names"></figure>
+        <div class="caption">Every piece is a person. Every person is a beat.</div>
+      </div>
     </div>
-  </section>
+  </div>
+</section>
 
-</main>
+<section class="alt">
+  <div class="wrap">
+    <p class="eyebrow">The collection</p>
+    <h2>23 artworks. One story.</h2>
+    <p class="muted narrow">Read in order, the twenty-three artworks trace one life: being born, becoming yourself, meeting others, and connecting. Twenty-two carry a face each. The twenty-third is where they come together, and it is built from 5,000 portraits instead of 2,500.</p>
+
+    <div class="grid">
+      <div class="card"><figure><img src="images/artworks/01.jpg" alt="01 ONE EARTH"></figure><div class="body"><div class="no">01</div><div class="ttl">ONE EARTH</div><div class="sub">We all begin here.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/02.jpg" alt="02 DIFFERENT"></figure><div class="body"><div class="no">02</div><div class="ttl">DIFFERENT</div><div class="sub">And no two of us are the same.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/03.jpg" alt="03 WHO AM I?"></figure><div class="body"><div class="no">03</div><div class="ttl">WHO AM I?</div><div class="sub">The question that starts a self.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/04.jpg" alt="04 WONDER"></figure><div class="body"><div class="no">04</div><div class="ttl">WONDER</div><div class="sub">Looking outward, wanting to know.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/05.jpg" alt="05 DREAMER"></figure><div class="body"><div class="no">05</div><div class="ttl">DREAMER</div><div class="sub">A future imagined before it exists.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/06.jpg" alt="06 MY VOICE"></figure><div class="body"><div class="no">06</div><div class="ttl">MY VOICE</div><div class="sub">Saying it in your own words.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/07.jpg" alt="07 LOVE INSIDE"></figure><div class="body"><div class="no">07</div><div class="ttl">LOVE INSIDE</div><div class="sub">Finding that it was already there.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/08.jpg" alt="08 FACE TO FACE"></figure><div class="body"><div class="no">08</div><div class="ttl">FACE TO FACE</div><div class="sub">Meeting someone unlike you.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/09.jpg" alt="09 CONNECTED"></figure><div class="body"><div class="no">09</div><div class="ttl">CONNECTED</div><div class="sub">One person, then another, then many.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/10.jpg" alt="10 LIFELINE"></figure><div class="body"><div class="no">10</div><div class="ttl">LIFELINE</div><div class="sub">We hold each other up.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/11.jpg" alt="11 HEART KING"></figure><div class="body"><div class="no">11</div><div class="ttl">HEART KING</div><div class="sub">Joy is bigger when it is shared.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/12.jpg" alt="12 KING OF ME"></figure><div class="body"><div class="no">12</div><div class="ttl">KING OF ME</div><div class="sub">Your life belongs to you.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/13.jpg" alt="13 BURNING SOUL"></figure><div class="body"><div class="no">13</div><div class="ttl">BURNING SOUL</div><div class="sub">Something you refuse to put down.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/14.jpg" alt="14 COURAGE"></figure><div class="body"><div class="no">14</div><div class="ttl">COURAGE</div><div class="sub">Moving forward while still afraid.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/15.jpg" alt="15 FADING AWAY"></figure><div class="body"><div class="no">15</div><div class="ttl">FADING AWAY</div><div class="sub">Some things are lost along the way.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/16.jpg" alt="16 ETERNAL"></figure><div class="body"><div class="no">16</div><div class="ttl">ETERNAL</div><div class="sub">A life ends. Something remains.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/17.jpg" alt="17 TWO MINDS"></figure><div class="body"><div class="no">17</div><div class="ttl">TWO MINDS</div><div class="sub">New intelligence, born from ours.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/18.jpg" alt="18 THE UNKNOWN"></figure><div class="body"><div class="no">18</div><div class="ttl">THE UNKNOWN</div><div class="sub">Nobody knows what comes next.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/19.jpg" alt="19 HOPE STAR"></figure><div class="body"><div class="no">19</div><div class="ttl">HOPE STAR</div><div class="sub">Which is exactly why we hope.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/20.jpg" alt="20 ANGEL WITHIN"></figure><div class="body"><div class="no">20</div><div class="ttl">ANGEL WITHIN</div><div class="sub">The good that lives in us.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/21.jpg" alt="21 DEVIL WITHIN"></figure><div class="body"><div class="no">21</div><div class="ttl">DEVIL WITHIN</div><div class="sub">And the part we would rather hide.</div></div></div>
+      <div class="card"><figure><img src="images/artworks/22.jpg" alt="22 THE EYE"></figure><div class="body"><div class="no">22</div><div class="ttl">THE EYE</div><div class="sub">Seeing past good, evil and difference.</div></div></div>
+      <div class="card final"><figure><img src="images/artworks/23.jpg" alt="23 ONE HEART"></figure><div class="body"><div class="no">23 · 5,000 pieces</div><div class="ttl">ONE HEART</div><div class="sub">In the end, we become one.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="split rev">
+      <div class="col-text">
+        <p class="eyebrow">The hidden second side</p>
+        <h2>Two sides. One story.</h2>
+        <p class="muted">Every piece has a reverse. The front carries your face; the back carries your name or initials. The reverse sides of all twenty-three artworks are built from names — and when they are turned over and brought together, they form another image entirely.</p>
+        <p class="muted">That image is the reason this project is called ONE HEART.</p>
+      </div>
+      <div>
+        <figure class="frame"><img src="images/card.jpg" alt="Front and back of a single piece"></figure>
+        <div class="caption">Front: your photograph. Back: your name.</div>
+        <figure class="frame" style="margin-top:22px"><img src="images/reverse.jpg" alt="The reverse side of all 23 artworks, forming one image"></figure>
+        <div class="caption">60,000 names, assembled on the reverse side.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="split">
+      <div class="col-text">
+        <p class="eyebrow">What you receive</p>
+        <h2>Your certificate, and your ID.</h2>
+        <p class="muted">You receive one certificate for every piece you hold. It shows the artwork number and title, your piece number and its exact position, the date of completion, and a certificate ID with QR verification.</p>
+        <p class="muted">Every certificate you hold is linked to a single member ID — one per person. It is how ONE HEART recognises you as the project continues. Everything is delivered digitally; nothing is shipped.</p>
+      </div>
+      <div>
+        <figure class="frame offset"><img src="images/certificate.jpg" alt="ONE HEART participation certificate"></figure>
+        <div class="caption">Sample certificate. One per piece.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">How to join</p>
+    <h2>Choose your artwork.</h2>
+    <p class="muted narrow">One place in each of the 22 artworks, and two places in ONE HEART. Twenty-four in total. Participation opens on Kickstarter.</p>
+
+    <div class="price-row">
+      <div class="price">
+        <div class="k">Choose your artwork</div>
+        <div class="amt">¥500</div>
+        <div class="d">One piece. Pick the artwork you want to be part of when you pledge.</div>
+      </div>
+      <div class="price">
+        <div class="k">Add more</div>
+        <div class="amt">+¥500</div>
+        <div class="d">Each extra piece. Add another artwork, and another. Up to twenty-four in total.</div>
+      </div>
+      <div class="price">
+        <div class="k">Founding Holder</div>
+        <div class="amt">¥12,000</div>
+        <div class="d">All twenty-four places at once — every artwork, plus both places in ONE HEART.</div>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a class="cta" href="https://www.kickstarter.com/projects/248635044/1654775797">View on Kickstarter</a>
+      <a class="cta ghost" href="terms.html">Participation Terms</a>
+    </div>
+  </div>
+</section>
 
 <footer>
   <div class="wrap">
     <div class="brand">ONE HEART PROJECT</div>
     Operated by TAmJ Inc., Tokyo, Japan<br>
     <a href="mailto:info@tamjump.com">info@tamjump.com</a>
+    <div class="fnav">
+      <a href="terms.html">Participation Terms</a>
+      <a href="https://www.kickstarter.com/projects/248635044/1654775797">Kickstarter</a>
+      <a href="https://tamjump.com/">TAmJ Inc.</a>
+    </div>
   </div>
 </footer>
 
