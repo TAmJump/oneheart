@@ -59,6 +59,14 @@
 
   section{padding:76px 0}
   section.alt{background:var(--bg-alt)}
+
+  .video-wrap{position:relative;margin-top:36px}
+  .video-wrap .block{
+    position:absolute;right:-24px;bottom:-24px;width:44%;height:70%;
+    background:var(--gold);opacity:.16;z-index:0
+  }
+  .video-wrap figure{position:relative;z-index:1;margin:0;border:1px solid var(--line);background:#111;line-height:0}
+  .video-wrap video{display:block;width:100%;height:auto}
   h2{font-size:30px;font-weight:800;margin:0 0 18px;letter-spacing:-.02em;line-height:1.2}
   p{margin:0 0 16px}
   .muted{color:var(--dim)}
@@ -146,6 +154,24 @@
     <div class="stat"><div class="n">¥500</div><div class="l">One entry, one piece</div></div>
   </div>
 </div>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">The project in fifty seconds</p>
+    <h2>See how it works.</h2>
+    <p class="muted narrow">One portrait becomes one piece. Twenty-three artworks, built by the people inside them.</p>
+    <div class="video-wrap">
+      <div class="block"></div>
+      <figure>
+        <video controls preload="metadata" playsinline poster="images/23grid.jpg">
+          <source src="media/one-heart.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </figure>
+    </div>
+    <div class="caption" style="margin-top:12px">Music: &ldquo;Still I Move&rdquo; by Tiger.J.Bob</div>
+  </div>
+</section>
 
 <section>
   <div class="wrap">
