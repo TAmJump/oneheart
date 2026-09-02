@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a Certificate — ONE HEART PROJECT</title>
+<meta name="description" content="Check the authenticity of a ONE HEART participation certificate using its certificate ID.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#e4e2dd;
+    --panel:#efedea;
+    --ink:#191919;
+    --dim:#5d5a55;
+    --line:#c7c3bc;
+    --gold:#96760f;
+    --coral:#c2543f;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.75;font-size:16px;
+  }
+  a{color:var(--gold);text-decoration:none}
+  .wrap{max-width:680px;margin:0 auto;padding:0 28px}
+
+  .topnav{border-bottom:1px solid var(--line);padding:18px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+  .topnav a{color:var(--ink)}
+  .topnav a:hover{color:var(--gold)}
+
+  header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 18px}
+  h1{font-size:38px;line-height:1.15;margin:0 0 16px;font-weight:800;letter-spacing:-.02em}
+  .lede{color:var(--dim);margin:0}
+
+  main{padding:44px 0 24px}
+
+  .form{background:var(--panel);border:1px solid var(--line);padding:28px}
+  label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold);margin-bottom:10px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  input[type=text]{
+    flex:1 1 260px;min-width:0;padding:14px 16px;font-size:16px;
+    font-family:inherit;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:0
+  }
+  input[type=text]:focus{outline:2px solid var(--gold);outline-offset:-2px}
+  button{
+    padding:14px 30px;background:var(--ink);color:#f2f0ec;border:0;
+    font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;cursor:pointer
+  }
+  button:hover{background:var(--coral)}
+  .hint{font-size:13px;color:var(--dim);margin:14px 0 0}
+
+  .result{
+    margin-top:22px;padding:20px 24px;border:1px solid var(--line);
+    background:#fff;font-size:15px;line-height:1.7;display:none
+  }
+  .result.show{display:block}
+  .result .k{
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    font-weight:700;color:var(--coral);margin-bottom:8px
+  }
+
+  section{padding:36px 0;border-top:1px solid var(--line)}
+  h2{font-size:18px;font-weight:700;margin:0 0 12px;letter-spacing:-.01em}
+  p{margin:0 0 14px}
+  .muted{color:var(--dim)}
+  ul{margin:0 0 14px;padding-left:22px;color:var(--dim)}
+  li{margin:0 0 8px}
+
+  footer{background:var(--ink);color:#b8b4ad;padding:44px 0 56px;font-size:13px;line-height:1.9;margin-top:28px}
+  footer a{color:#d9c37a}
+  footer .brand{color:#f2f0ec;font-weight:700;letter-spacing:.02em;font-size:15px;margin-bottom:6px}
+  .fnav{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px}
+
+  @media (max-width:600px){
+    h1{font-size:29px}
+    .form{padding:22px 20px}
+    button{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="wrap"><a href="/">&larr; One Heart Project</a></div>
+</div>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">One Heart Project</p>
+    <h1>Verify a certificate</h1>
+    <p class="lede">Every ONE HEART participation certificate carries a certificate ID. Enter it here to check that the certificate is one we issued, and to see which piece it records.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="form">
+    <label for="cid">Certificate ID</label>
+    <div class="row">
+      <input type="text" id="cid" placeholder="OHP00-0000-00000000" autocomplete="off" spellcheck="false">
+      <button id="go" type="button">Verify</button>
+    </div>
+    <p class="hint">The certificate ID is printed in the upper right of your certificate, and is encoded in the QR code beside it.</p>
+    <div class="result" id="result"></div>
+  </div>
+
+  <section>
+    <h2>Verification opens when the first artwork is completed</h2>
+    <p class="muted">Certificates are issued once an artwork has all of its places filled and has been produced. Until the first artwork is finished, there are no certificate IDs to check, and this page cannot return a result.</p>
+    <p class="muted">If you are holding a certificate and this page is not yet returning results, write to <a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID and we will confirm it directly.</p>
+  </section>
+
+  <section>
+    <h2>What verification shows</h2>
+    <ul>
+      <li>whether the certificate ID was issued by the ONE HEART PROJECT;</li>
+      <li>the artwork number and title the piece belongs to;</li>
+      <li>the piece number and its position within that artwork;</li>
+      <li>the date the artwork was completed.</li>
+    </ul>
+    <p class="muted">Verification does not display the name, photograph or contact details of the certificate holder.</p>
+  </section>
+
+  <section>
+    <h2>What a certificate is</h2>
+    <p class="muted">A certificate is a record of participation. It carries no financial return, no ownership share, no revenue interest and no guaranteed resale value. Verifying it confirms participation and nothing more. This is set out in full in the <a href="/terms.html">participation terms</a>.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">ONE HEART PROJECT</div>
+    Operated by TAmJ Inc., Tokyo, Japan<br>
+    <a href="mailto:info@tamjump.com">info@tamjump.com</a>
+    <div class="fnav">
+      <a href="/">Project home</a>
+      <a href="/terms.html">Participation Terms</a>
+      <a href="https://www.kickstarter.com/projects/248635044/1654775797">Kickstarter</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var input = document.getElementById('cid');
+  var btn = document.getElementById('go');
+  var box = document.getElementById('result');
+
+  function show(kind, text){
+    box.innerHTML = '<div class="k">' + kind + '</div>' + text;
+    box.classList.add('show');
+  }
+
+  function check(){
+    var v = input.value.trim();
+    if (!v){
+      show('Enter an ID', 'Type the certificate ID printed on your certificate, then press Verify.');
+      return;
+    }
+    show('Not available yet',
+      'Certificate verification opens once the first artwork has been completed and its certificates have been issued. ' +
+      'Your ID has not been checked against anything. If you are holding a certificate now, email ' +
+      '<a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID and we will confirm it for you.');
+  }
+
+  btn.addEventListener('click', check);
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') check(); });
+
+  // support /verify?id=XXXX from the QR code
+  var q = new URLSearchParams(window.location.search).get('id');
+  if (q){ input.value = q; check(); }
+})();
+</script>
+
+</body>
+</html>
