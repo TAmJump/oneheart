@@ -77,6 +77,25 @@
   .lyrics p{margin:0 0 20px;font-size:17px;line-height:1.9;color:var(--ink)}
   .lyrics .ja p{font-size:16px;line-height:2.0}
   .lyrics .credit{font-size:13px;color:var(--dim);margin-top:8px}
+
+  .quote{
+    border-left:4px solid var(--coral);padding:6px 0 6px 24px;margin:0 0 26px;
+    font-size:26px;line-height:1.35;font-weight:700;letter-spacing:-.015em
+  }
+  .quote .src{display:block;font-size:14px;font-weight:400;color:var(--dim);margin-top:12px;line-height:1.6}
+  .ladder{display:flex;gap:0;flex-wrap:wrap;margin:28px 0 0;border-top:1px solid var(--line)}
+  .ladder .step{flex:1 1 190px;padding:20px 24px 20px 0;border-right:1px solid var(--line)}
+  .ladder .step:last-child{border-right:0}
+  .ladder .k{font-size:11px;letter-spacing:.16em;font-weight:700;color:var(--dim);text-transform:uppercase}
+  .ladder .v{font-size:22px;font-weight:800;letter-spacing:-.015em;margin-top:6px;color:var(--dim)}
+  .ladder .step.on .k{color:var(--gold)}
+  .ladder .step.on .v{color:var(--ink)}
+  .strip22{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;margin-top:32px}
+  .strip22 img{width:100%;height:auto;display:block;border:1px solid var(--line)}
+  @media (max-width:600px){
+    .quote{font-size:20px}
+    .strip22{grid-template-columns:repeat(6,1fr);gap:4px}
+  }
   h2{font-size:30px;font-weight:800;margin:0 0 18px;letter-spacing:-.02em;line-height:1.2}
   p{margin:0 0 16px}
   .muted{color:var(--dim)}
@@ -164,6 +183,57 @@
     <div class="stat"><div class="n">¥500</div><div class="l">One entry, one piece</div></div>
   </div>
 </div>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Why these 22 characters exist</p>
+    <h2>I did not draw these faces.<br>The children did.</h2>
+    <p class="muted narrow">Between 2024 and 2025 I met children living with illness, and collected the characters that came out of their ideas. Twenty-two of them became the foundation of ONE HEART.</p>
+
+    <div class="split" style="margin-top:44px;align-items:start">
+      <div class="col-text">
+        <p class="quote">You don&rsquo;t have to work so hard for me.
+          <span class="src">Said by a child who already understood what the people around him were carrying. Most of them are treated with money their parents earned, and with support from public systems. They know it, and they carry it.</span>
+        </p>
+      </div>
+      <div>
+        <p class="muted">So I started from the other side. If what they made carried its own value &mdash; as artwork, then as products &mdash; the value could come back to them. They would no longer only be the ones receiving.</p>
+        <p class="muted">If the characters become products, the goal is for the value they create to return to the children who made them. And if it works, it should not stop at twenty-two.</p>
+        <div class="ladder">
+          <div class="step"><div class="k">Not</div><div class="v">charity</div></div>
+          <div class="step"><div class="k">Not</div><div class="v">pity</div></div>
+          <div class="step on"><div class="k">But</div><div class="v">their own value</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip22">
+      <img src="images/artworks/01.jpg" alt="Character 01">
+      <img src="images/artworks/02.jpg" alt="Character 02">
+      <img src="images/artworks/03.jpg" alt="Character 03">
+      <img src="images/artworks/04.jpg" alt="Character 04">
+      <img src="images/artworks/05.jpg" alt="Character 05">
+      <img src="images/artworks/06.jpg" alt="Character 06">
+      <img src="images/artworks/07.jpg" alt="Character 07">
+      <img src="images/artworks/08.jpg" alt="Character 08">
+      <img src="images/artworks/09.jpg" alt="Character 09">
+      <img src="images/artworks/10.jpg" alt="Character 10">
+      <img src="images/artworks/11.jpg" alt="Character 11">
+      <img src="images/artworks/12.jpg" alt="Character 12">
+      <img src="images/artworks/13.jpg" alt="Character 13">
+      <img src="images/artworks/14.jpg" alt="Character 14">
+      <img src="images/artworks/15.jpg" alt="Character 15">
+      <img src="images/artworks/16.jpg" alt="Character 16">
+      <img src="images/artworks/17.jpg" alt="Character 17">
+      <img src="images/artworks/18.jpg" alt="Character 18">
+      <img src="images/artworks/19.jpg" alt="Character 19">
+      <img src="images/artworks/20.jpg" alt="Character 20">
+      <img src="images/artworks/21.jpg" alt="Character 21">
+      <img src="images/artworks/22.jpg" alt="Character 22">
+    </div>
+    <div class="caption" style="margin-top:12px">Twenty-two characters. Twenty-two children.</div>
+  </div>
+</section>
 
 <section>
   <div class="wrap">
