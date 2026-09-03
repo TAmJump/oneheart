@@ -1,0 +1,253 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ONE HEART PROJECT - participation backend (notify, Square order, portrait storage)
+
+Parameters:
+  SiteOrigin:
+    Type: String
+    Default: https://oneheart.tamjump.com
+  NotifyTo:
+    Type: String
+    Default: info@tamjump.com
+  NotifyFrom:
+    Type: String
+    Default: info@tamjump.com
+  SquareLocationId:
+    Type: String
+    Default: LH3WP4241WJEV
+  SquareTokenParam:
+    Type: String
+    Default: /oneheart/square/access-token
+    Description: SSM SecureString parameter holding the Square production access token.
+
+Resources:
+
+  SignupsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-signups
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: email, AttributeType: S}
+      KeySchema:
+        - {AttributeName: email, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: orderId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: orderId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  PortraitsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'oneheart-portraits-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: [!Ref SiteOrigin]
+            AllowedMethods: [PUT, GET, HEAD]
+            AllowedHeaders: ['*']
+            MaxAge: 3000
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  FnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: oneheart-api-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: oneheart-api-inline
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:GetItem, dynamodb:UpdateItem]
+                Resource:
+                  - !GetAtt SignupsTable.Arn
+                  - !GetAtt OrdersTable.Arn
+              - Effect: Allow
+                Action: [ses:SendEmail]
+                Resource: '*'
+              - Effect: Allow
+                Action: [s3:PutObject, s3:GetObject]
+                Resource: !Sub '${PortraitsBucket.Arn}/*'
+              - Effect: Allow
+                Action: [ssm:GetParameter]
+                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SquareTokenParam}'
+
+  Fn:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: oneheart-api
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Timeout: 20
+      MemorySize: 256
+      Role: !GetAtt FnRole.Arn
+      Environment:
+        Variables:
+          TABLE: !Ref SignupsTable
+          ORDERS: !Ref OrdersTable
+          BUCKET: !Ref PortraitsBucket
+          ORIGIN: !Ref SiteOrigin
+          NOTIFY_TO: !Ref NotifyTo
+          NOTIFY_FROM: !Ref NotifyFrom
+          SQ_LOCATION: !Ref SquareLocationId
+          TOKEN_PARAM: !Ref SquareTokenParam
+      Code:
+        ZipFile: |
+          const {DynamoDBClient,PutItemCommand}=require("@aws-sdk/client-dynamodb");
+          const {SESClient,SendEmailCommand}=require("@aws-sdk/client-ses");
+          const {SSMClient,GetParameterCommand}=require("@aws-sdk/client-ssm");
+          const {randomUUID}=require("crypto");
+          const ddb=new DynamoDBClient({}),ses=new SESClient({}),ssm=new SSMClient({});
+          const H={"content-type":"application/json","access-control-allow-origin":process.env.ORIGIN};
+          const RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+          const r=(c,b)=>({statusCode:c,headers:H,body:JSON.stringify(b)});
+          let TOK;
+          async function tok(){
+            if(!TOK){const p=await ssm.send(new GetParameterCommand({Name:process.env.TOKEN_PARAM,WithDecryption:true}));TOK=p.Parameter.Value}
+            return TOK;
+          }
+          async function mail(s,t){
+            try{await ses.send(new SendEmailCommand({Source:process.env.NOTIFY_FROM,
+              Destination:{ToAddresses:[process.env.NOTIFY_TO]},
+              Message:{Subject:{Data:s},Body:{Text:{Data:t}}}}))}catch(e){console.error("ses",e.name)}
+          }
+          async function notify(d,ip){
+            const email=String(d.email||"").trim().toLowerCase();
+            if(email.length>254||!RE.test(email))return r(400,{error:"bad_email"});
+            const now=new Date().toISOString();
+            try{
+              await ddb.send(new PutItemCommand({TableName:process.env.TABLE,
+                Item:{email:{S:email},createdAt:{S:now},source:{S:String(d.source||"join")},ip:{S:ip}},
+                ConditionExpression:"attribute_not_exists(email)"}));
+            }catch(e){
+              if(e.name==="ConditionalCheckFailedException")return r(200,{ok:true,already:true});
+              console.error("ddb",e);return r(500,{error:"store_failed"});
+            }
+            await mail("ONE HEART - new signup",email+"\n"+now+"\n"+ip);
+            return r(200,{ok:true});
+          }
+          async function order(d,ip){
+            const email=String(d.email||"").trim().toLowerCase();
+            const art=parseInt(d.artwork,10),n=parseInt(d.pieces,10)||1;
+            const src=String(d.sourceId||"");
+            if(email.length>254||!RE.test(email))return r(400,{error:"bad_email"});
+            if(!(art>=1&&art<=23))return r(400,{error:"bad_artwork"});
+            if(!(n>=1&&n<=24))return r(400,{error:"bad_pieces"});
+            if(!src)return r(400,{error:"no_source"});
+            const id=randomUUID(),amt=n*500,now=new Date().toISOString();
+            let pay;
+            try{
+              const res=await fetch("https://connect.squareup.com/v2/payments",{method:"POST",
+                headers:{authorization:"Bearer "+(await tok()),"square-version":"2025-01-23","content-type":"application/json"},
+                body:JSON.stringify({source_id:src,idempotency_key:id,location_id:process.env.SQ_LOCATION,
+                  amount_money:{amount:amt,currency:"JPY"},buyer_email_address:email,
+                  note:"ONE HEART artwork "+art+" x"+n})});
+              pay=await res.json();
+              if(!res.ok){
+                const m=(pay.errors&&pay.errors[0]&&(pay.errors[0].detail||pay.errors[0].code))||"declined";
+                return r(402,{error:"payment_failed",detail:m});
+              }
+            }catch(e){console.error("sq",e);return r(502,{error:"payment_error"})}
+            try{
+              await ddb.send(new PutItemCommand({TableName:process.env.ORDERS,Item:{
+                orderId:{S:id},email:{S:email},artwork:{N:String(art)},pieces:{N:String(n)},
+                amount:{N:String(amt)},paymentId:{S:(pay.payment&&pay.payment.id)||""},
+                status:{S:"paid"},portrait:{S:""},createdAt:{S:now},ip:{S:ip}}}));
+            }catch(e){console.error("ddb",e)}
+            await mail("ONE HEART - order "+id,email+"\nartwork "+art+" x"+n+" = JPY "+amt+"\n"+now);
+            return r(200,{ok:true,orderId:id,amount:amt});
+          }
+          exports.handler=async(e)=>{
+            const p=(e.rawPath||"").replace(/\/+$/,"")||"/";
+            const ip=(e.requestContext&&e.requestContext.http&&e.requestContext.http.sourceIp)||"";
+            let d={};try{d=JSON.parse(e.body||"{}")}catch(x){return r(400,{error:"bad_json"})}
+            if(p==="/notify")return notify(d,ip);
+            if(p==="/order")return order(d,ip);
+            return r(404,{error:"not_found"});
+          };
+
+  Api:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: oneheart-api
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins: [!Ref SiteOrigin]
+        AllowMethods: [POST, OPTIONS]
+        AllowHeaders: [content-type]
+        MaxAge: 3000
+
+  Integration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref Api
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt Fn.Arn
+      PayloadFormatVersion: '2.0'
+
+  RouteNotify:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /notify'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteOrder:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /order'
+      Target: !Sub 'integrations/${Integration}'
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref Api
+      StageName: $default
+      AutoDeploy: true
+
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Fn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*/*'
+
+Outputs:
+  NotifyEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/notify'
+  OrderEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/order'
+  OrdersTableName:
+    Value: !Ref OrdersTable
+  PortraitsBucketName:
+    Value: !Ref PortraitsBucket
