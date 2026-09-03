@@ -461,7 +461,7 @@
 
     var note = document.getElementById("progress-note");
     if (note){
-      note.textContent = n.toLocaleString("en-US") +
+      note.textContent = (n + (d.unassigned || 0)).toLocaleString("en-US") +
         " of 60,000 places taken. Updated daily — last updated " + d.updated + ".";
     }
   }).catch(function(){});
