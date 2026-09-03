@@ -195,44 +195,59 @@
 </footer>
 
 <script>
-/* Set this to the Google Form "formResponse" endpoint and the email field entry id.
-   Until it is set, the form falls back to a pre-filled email to info@tamjump.com. */
-var NOTIFY_ENDPOINT = "";
-var NOTIFY_FIELD    = "";
+var NOTIFY_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/notify";
 
 (function(){
   var form   = document.getElementById('notifyForm');
   var input  = document.getElementById('notifyEmail');
   var thanks = document.getElementById('notifyThanks');
+  var btn    = form.querySelector('button');
 
-  function valid(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function valid(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
 
-  function done(){
+  function done(msg){
+    if(msg){ thanks.textContent = msg; }
     form.style.display = 'none';
+    thanks.style.display = 'block';
+  }
+
+  function fail(){
+    btn.disabled = false;
+    btn.textContent = 'Notify me';
+    input.style.borderColor = '#E53935';
+    thanks.textContent = 'Something went wrong. Please write to info@tamjump.com and we will add you by hand.';
     thanks.style.display = 'block';
   }
 
   form.addEventListener('submit', function(e){
     e.preventDefault();
-    var v = input.value.trim();
+    var v = input.value.trim().toLowerCase();
     if(!valid(v)){
       input.focus();
       input.style.borderColor = '#E53935';
       return;
     }
-    if(NOTIFY_ENDPOINT && NOTIFY_FIELD){
-      var body = new FormData();
-      body.append(NOTIFY_FIELD, v);
-      fetch(NOTIFY_ENDPOINT, { method:'POST', mode:'no-cors', body: body })
-        .then(done).catch(done);
-      done();
-    } else {
-      window.location.href =
-        'mailto:info@tamjump.com'
-        + '?subject=' + encodeURIComponent('ONE HEART — notify me when participation opens')
-        + '&body='    + encodeURIComponent('Please tell me when participation opens.\n\nEmail: ' + v + '\n');
-      done();
-    }
+    input.style.borderColor = '';
+    btn.disabled = true;
+    btn.textContent = 'Sending';
+
+    fetch(NOTIFY_ENDPOINT, {
+      method: 'POST',
+      headers: {'content-type':'application/json'},
+      body: JSON.stringify({email: v, source: 'join'})
+    })
+    .then(function(res){
+      if(!res.ok) throw new Error('http ' + res.status);
+      return res.json();
+    })
+    .then(function(data){
+      if(data && data.already){
+        done('You are already on the list. We will write to you when participation opens.');
+      } else {
+        done(null);
+      }
+    })
+    .catch(fail);
   });
 })();
 </script>
