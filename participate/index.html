@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Take Your Place — ONE HEART PROJECT</title>
-<meta name="description" content="Choose one of the twenty-three artworks, take your place for ¥500, and send one portrait. Your photograph becomes a single piece and stays in that position.">
+<meta name="description" content="Choose the artworks you want to belong to. One place in each, ¥500 each, up to twenty-four in total. Your portrait becomes a single piece and stays in that position.">
 <meta name="robots" content="noindex">
 <meta property="og:title" content="Take Your Place — ONE HEART PROJECT">
-<meta property="og:description" content="Choose an artwork. Take your place. Send one portrait.">
+<meta property="og:description" content="Choose your artworks. Take your place. Send one portrait.">
 <meta property="og:image" content="https://oneheart.tamjump.com/images/23grid.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,18 +53,22 @@
   p{margin:0 0 18px}
   .muted{color:var(--dim)}
 
+  .rule{border:3px solid var(--ink);background:var(--panel);padding:18px 20px;margin-top:26px;font-size:14px;font-weight:600;line-height:1.7}
+
   /* artwork grid */
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:32px}
-  .card{border:3px solid var(--ink);background:var(--panel);padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit;display:block;width:100%}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+  .card{position:relative;border:3px solid var(--ink);background:var(--panel);padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit;display:block;width:100%}
   .card .thumb{border-bottom:3px solid var(--ink);background:var(--panel)}
   .card .meta{padding:14px 16px 16px}
   .card .no{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--dim)}
   .card .ttl{font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.25;margin-top:4px}
   .card .hl{font-size:12px;letter-spacing:.04em;color:var(--dim);margin-top:6px;line-height:1.5}
+  .card .tag{display:none;position:absolute;bottom:0;right:0;background:var(--coral);color:#fff;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px}
   .card:hover{background:#fff}
-  .card[aria-pressed="true"]{border-color:var(--coral);background:#fff;box-shadow:0 0 0 3px var(--coral) inset}
-  .card[aria-pressed="true"] .thumb{border-bottom-color:var(--coral)}
-  .card[aria-pressed="true"] .no{color:var(--coral)}
+  .card.on{border-color:var(--coral);background:#fff;box-shadow:0 0 0 3px var(--coral) inset}
+  .card.on .thumb{border-bottom-color:var(--coral)}
+  .card.on .no{color:var(--coral)}
+  .card.on .tag{display:block}
 
   /* panels */
   .panel{border:3px solid var(--ink);background:var(--panel);padding:32px}
@@ -73,14 +77,24 @@
 
   .row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
   label.lbl{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin:0 0 8px}
-  input[type=email],select{
-    padding:14px 16px;font:inherit;font-size:16px;
+  input[type=email]{
+    flex:1 1 320px;padding:14px 16px;font:inherit;font-size:16px;
     border:3px solid var(--ink);background:#fff;color:var(--ink);border-radius:0;
     -webkit-appearance:none;appearance:none;min-width:0
   }
-  input[type=email]{flex:1 1 320px}
-  select{flex:0 0 140px;background-image:none}
-  input[type=email]:focus,select:focus{outline:3px solid var(--coral);outline-offset:2px}
+  input[type=email]:focus{outline:3px solid var(--coral);outline-offset:2px}
+
+  .picks{border:3px solid var(--ink);background:#fff;margin-bottom:24px}
+  .picks .empty{padding:16px 18px;color:var(--dim);font-weight:600}
+  .pick{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:2px solid var(--ink)}
+  .pick:last-child{border-bottom:0}
+  .pick .pthumb{flex:0 0 84px}
+  .pick .pno{font-size:11px;letter-spacing:.16em;font-weight:700;color:var(--coral)}
+  .pick .pttl{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .pick .pbody{flex:1 1 auto;min-width:0}
+  .pick .pamt{font-size:14px;font-weight:700;white-space:nowrap}
+  .pick .drop{border:3px solid var(--ink);background:transparent;font:inherit;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;cursor:pointer}
+  .pick .drop:hover{background:var(--coral);border-color:var(--coral);color:#fff}
 
   .total{border-top:2px solid var(--ink);margin-top:24px;padding-top:20px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
   .total .l{font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
@@ -97,16 +111,10 @@
   .fineprint{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.7}
   .msg{display:none;border:3px solid var(--coral);background:#fff;padding:16px 18px;margin-top:20px;font-size:14px;font-weight:600}
 
-  .selected{display:flex;gap:16px;align-items:center;border:3px solid var(--ink);background:#fff;padding:14px 16px;margin-bottom:24px}
-  .selected .sthumb{flex:0 0 108px}
-  .selected .sno{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--coral)}
-  .selected .sttl{font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.2;margin-top:2px}
-  .selected.empty{color:var(--dim);font-weight:600;display:block}
-
   #done{display:none}
   .receipt{display:grid;grid-template-columns:auto 1fr;gap:8px 22px;font-size:14px;margin:22px 0 0;border-top:2px solid var(--ink);padding-top:20px}
   .receipt dt{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--dim)}
-  .receipt dd{margin:0;font-weight:700;word-break:break-all}
+  .receipt dd{margin:0;font-weight:700;word-break:break-word}
 
   .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
   .cta{display:inline-block;padding:14px 24px;border:3px solid var(--ink);font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase}
@@ -125,7 +133,7 @@
     h2{font-size:25px}
     .grid{grid-template-columns:1fr}
     .panel{padding:24px 20px}
-    select{flex:1 1 100%}
+    .pick .pthumb{flex:0 0 64px}
   }
 </style>
 </head>
@@ -138,8 +146,8 @@
 <header>
   <div class="wrap">
     <p class="eyebrow">Participation</p>
-    <h1>Choose an artwork.<br>Take your <span class="accent">place</span>.</h1>
-    <p class="lede">One place is ¥500. Your portrait becomes a single piece of the artwork you choose, and it stays in that position. You may take up to twenty-four places in total.</p>
+    <h1>Choose your artworks.<br>Take your <span class="accent">place</span>.</h1>
+    <p class="lede">One place is ¥500. Your portrait becomes a single piece of the artwork you choose, and it stays in that position. Belong to as many of the twenty-three as you wish.</p>
   </div>
 </header>
 
@@ -154,8 +162,11 @@
 <section>
   <div class="wrap">
     <p class="stepno">Step 01</p>
-    <h2>Choose your artwork.</h2>
-    <p class="muted narrow">Each artwork carries its own question. Pick the one you want to belong to.</p>
+    <h2>Choose your artworks.</h2>
+    <p class="muted narrow">Each artwork carries its own question. Select every one you want to belong to.</p>
+
+    <div class="rule">One place per artwork. ONE HEART, the twenty-third, is the only artwork you may take twice — click it again for a second place. Twenty-four places is the most any one person can hold.</div>
+
     <div class="grid" id="grid"></div>
   </div>
 </section>
@@ -163,19 +174,11 @@
 <section>
   <div class="wrap">
     <p class="stepno">Step 02</p>
-    <h2>Take your place.</h2>
-    <p class="muted narrow">Confirm how many places you want and where we should write to you.</p>
+    <h2>Confirm and tell us where to write.</h2>
+    <p class="muted narrow">Check your selection and leave an email address. Everything about your places is sent there.</p>
 
     <div class="panel" style="margin-top:30px">
-      <div class="selected empty" id="selected">No artwork selected yet. Choose one above.</div>
-
-      <div style="margin-bottom:22px">
-        <label class="lbl" for="pieces">Places</label>
-        <div class="row">
-          <select id="pieces"></select>
-          <span class="muted" style="font-size:14px">¥500 each</span>
-        </div>
-      </div>
+      <div class="picks" id="picks"><div class="empty">No artwork selected yet. Choose one above.</div></div>
 
       <div>
         <label class="lbl" for="email">Email address</label>
@@ -185,8 +188,8 @@
       </div>
 
       <div class="total">
-        <span class="l">Total</span>
-        <span class="v" id="total">¥500</span>
+        <span class="l"><span id="count">0</span> places · Total</span>
+        <span class="v" id="total">¥0</span>
       </div>
     </div>
   </div>
@@ -203,7 +206,7 @@
       <div id="card-container"></div>
 
       <div class="row" style="margin-top:24px">
-        <button class="btn" id="pay" type="button" disabled>Pay ¥500</button>
+        <button class="btn" id="pay" type="button" disabled>Pay</button>
       </div>
 
       <div class="msg" id="msg"></div>
@@ -216,16 +219,16 @@
 <section id="done">
   <div class="wrap">
     <p class="stepno">Confirmed</p>
-    <h2>Your place is held.</h2>
+    <h2>Your places are held.</h2>
     <p class="muted narrow">A record of this payment has been created. Next, send us your portrait so we can place it.</p>
 
     <div class="panel" style="margin-top:30px">
       <h3>Send one portrait</h3>
-      <p>Email your photograph to <a href="mailto:info@tamjump.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">info@tamjump.com</a> with the order number below in the subject line. One clear photograph of a face, JPEG or PNG, at least 800×800 pixels. Send one photograph for each place you have taken.</p>
+      <p>Email your photograph to <a href="mailto:info@tamjump.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">info@tamjump.com</a> with the order number below in the subject line. One clear photograph of a face, JPEG or PNG, at least 800×800 pixels. The same photograph is used for every artwork you have joined unless you tell us otherwise.</p>
       <p>Upload directly on this page will replace email later. If you have already sent a photograph, nothing else is needed from you.</p>
       <dl class="receipt">
         <dt>Order</dt><dd id="r-order">—</dd>
-        <dt>Artwork</dt><dd id="r-art">—</dd>
+        <dt>Artworks</dt><dd id="r-art">—</dd>
         <dt>Places</dt><dd id="r-pieces">—</dd>
         <dt>Paid</dt><dd id="r-amount">—</dd>
       </dl>
@@ -257,8 +260,9 @@
 var ORDER_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/order";
 var SQ_APP_ID      = "sq0idp-DDvfI0E05acVUIYXHZimkQ";
 var SQ_LOCATION_ID = "LH3WP4241WJEV";
-var MAX_PLACES     = 24;
 var PRICE          = 500;
+var ONE_HEART      = 23;
+var MAX_PER        = function(n){ return n === ONE_HEART ? 2 : 1; };
 
 var ARTWORKS = [
   {n:1,  t:"ONE EARTH",     h:"We all begin here."},
@@ -286,12 +290,15 @@ var ARTWORKS = [
   {n:23, t:"ONE HEART",     h:"In the end, we become one."}
 ];
 
-var pad     = function(n){ return n < 10 ? "0" + n : String(n); };
-var yen     = function(v){ return "¥" + v.toLocaleString("en-US"); };
-var $       = function(id){ return document.getElementById(id); };
-var picked  = null;
-var card    = null;
-var busy    = false;
+var pad  = function(n){ return n < 10 ? "0" + n : String(n); };
+var yen  = function(v){ return "¥" + v.toLocaleString("en-US"); };
+var $    = function(id){ return document.getElementById(id); };
+var art  = function(n){ return ARTWORKS.filter(function(a){ return a.n === n; })[0]; };
+
+var held = {};   /* artwork number -> 1 or 2 */
+var card = null;
+var busy = false;
+var last = null;
 
 /* ---- artwork grid ---- */
 (function(){
@@ -300,59 +307,78 @@ var busy    = false;
     var b = document.createElement("button");
     b.type = "button";
     b.className = "card";
-    b.setAttribute("aria-pressed", "false");
-    b.dataset.n = a.n;
+    b.id = "c" + a.n;
     b.innerHTML =
+      '<div class="tag" id="t' + a.n + '">Taken</div>' +
       '<div class="thumb"><img src="/images/artworks/' + pad(a.n) + '.jpg" alt="' + a.t +
       ' mosaic artwork for the WE ARE ALL ONE HEART project." loading="lazy"></div>' +
       '<div class="meta"><div class="no">' + pad(a.n) + '</div>' +
       '<div class="ttl">' + a.t + '</div><div class="hl">' + a.h + '</div></div>';
-    b.addEventListener("click", function(){ select(a.n); });
+    b.addEventListener("click", function(){ cycle(a.n); });
     g.appendChild(b);
   });
 })();
 
-/* ---- places select ---- */
-(function(){
-  var s = $("pieces");
-  for (var i = 1; i <= MAX_PLACES; i++){
-    var o = document.createElement("option");
-    o.value = i;
-    o.textContent = i === 1 ? "1 place" : i + " places";
-    s.appendChild(o);
-  }
-  s.addEventListener("change", refresh);
-})();
-
-function select(n){
-  picked = ARTWORKS.filter(function(a){ return a.n === n; })[0];
-  var cards = document.querySelectorAll(".card");
-  for (var i = 0; i < cards.length; i++){
-    cards[i].setAttribute("aria-pressed", String(Number(cards[i].dataset.n) === n));
-  }
-  var box = $("selected");
-  box.className = "selected";
-  box.innerHTML =
-    '<div class="sthumb"><img src="/images/artworks/' + pad(n) + '.jpg" alt=""></div>' +
-    '<div><div class="sno">Artwork ' + pad(n) + '</div><div class="sttl">' + picked.t + '</div></div>';
+function cycle(n){
+  var cur = held[n] || 0;
+  var next = cur + 1;
+  if (next > MAX_PER(n)) next = 0;
+  if (next === 0) { delete held[n]; } else { held[n] = next; }
   refresh();
 }
 
-function pieces(){ return parseInt($("pieces").value, 10) || 1; }
+function drop(n){ delete held[n]; refresh(); }
+
+function order(){
+  return Object.keys(held).map(Number).sort(function(a,b){ return a - b; });
+}
+
+function flat(){
+  var out = [];
+  order().forEach(function(n){ for (var i = 0; i < held[n]; i++) out.push(n); });
+  return out;
+}
 
 function refresh(){
-  var amount = pieces() * PRICE;
+  ARTWORKS.forEach(function(a){
+    var el = $("c" + a.n), q = held[a.n] || 0;
+    if (q > 0){
+      el.classList.add("on");
+      $("t" + a.n).textContent = q > 1 ? q + " places" : "Taken";
+    } else {
+      el.classList.remove("on");
+    }
+  });
+
+  var list = order(), n = flat().length, amount = n * PRICE;
+  var box = $("picks");
+
+  if (!list.length){
+    box.innerHTML = '<div class="empty">No artwork selected yet. Choose one above.</div>';
+  } else {
+    box.innerHTML = list.map(function(k){
+      var a = art(k), q = held[k];
+      return '<div class="pick">' +
+        '<div class="pthumb"><img src="/images/artworks/' + pad(k) + '.jpg" alt=""></div>' +
+        '<div class="pbody"><div class="pno">Artwork ' + pad(k) + (q > 1 ? " · " + q + " places" : "") + '</div>' +
+        '<div class="pttl">' + a.t + '</div></div>' +
+        '<div class="pamt">' + yen(q * PRICE) + '</div>' +
+        '<button type="button" class="drop" data-n="' + k + '">Remove</button>' +
+        '</div>';
+    }).join("");
+    var btns = box.querySelectorAll(".drop");
+    for (var i = 0; i < btns.length; i++){
+      btns[i].addEventListener("click", function(){ drop(Number(this.dataset.n)); });
+    }
+  }
+
+  $("count").textContent = n;
   $("total").textContent = yen(amount);
-  $("pay").textContent = "Pay " + yen(amount);
-  $("pay").disabled = busy || !picked || !card;
+  $("pay").textContent = n ? "Pay " + yen(amount) : "Pay";
+  $("pay").disabled = busy || !n || !card;
 }
 
-function say(t){
-  var m = $("msg");
-  m.textContent = t;
-  m.style.display = "block";
-}
-
+function say(t){ var m = $("msg"); m.textContent = t; m.style.display = "block"; }
 function clearMsg(){ $("msg").style.display = "none"; }
 
 /* ---- Square ---- */
@@ -379,8 +405,10 @@ $("pay").addEventListener("click", function(){
   if (busy) return;
   clearMsg();
 
+  var picks = flat();
   var email = $("email").value.trim().toLowerCase();
-  if (!picked){ say("Choose an artwork first."); return; }
+
+  if (!picks.length){ say("Choose at least one artwork."); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
     say("Please enter a valid email address.");
     $("email").focus();
@@ -390,6 +418,7 @@ $("pay").addEventListener("click", function(){
   busy = true;
   $("pay").disabled = true;
   $("pay").textContent = "Processing";
+  last = { list: order().slice(), n: picks.length };
 
   card.tokenize().then(function(res){
     if (res.status !== "OK"){
@@ -398,12 +427,7 @@ $("pay").addEventListener("click", function(){
     return fetch(ORDER_ENDPOINT, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        email:    email,
-        artwork:  picked.n,
-        pieces:   pieces(),
-        sourceId: res.token
-      })
+      body: JSON.stringify({ email: email, artworks: picks, sourceId: res.token })
     });
   }).then(function(r){
     return r.json().then(function(d){ return { ok: r.ok, d: d }; });
@@ -415,7 +439,6 @@ $("pay").addEventListener("click", function(){
     show(out.d);
   }).catch(function(err){
     busy = false;
-    $("pay").disabled = false;
     refresh();
     say(err.message || "Something went wrong. Nothing has been charged. Please try again, or write to info@tamjump.com.");
   });
@@ -423,12 +446,17 @@ $("pay").addEventListener("click", function(){
 
 function show(d){
   $("r-order").textContent  = d.orderId || "—";
-  $("r-art").textContent    = pad(picked.n) + " " + picked.t;
-  $("r-pieces").textContent = pieces();
-  $("r-amount").textContent = yen(d.amount || pieces() * PRICE);
+  $("r-art").textContent    = last.list.map(function(k){
+    var q = held[k];
+    return pad(k) + " " + art(k).t + (q > 1 ? " ×" + q : "");
+  }).join(", ");
+  $("r-pieces").textContent = last.n;
+  $("r-amount").textContent = yen(d.amount || last.n * PRICE);
   $("done").style.display   = "block";
   $("done").scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+refresh();
 </script>
 
 </body>

@@ -156,20 +156,25 @@ Resources:
           }
           async function order(d,ip){
             const email=String(d.email||"").trim().toLowerCase();
-            const art=parseInt(d.artwork,10),n=parseInt(d.pieces,10)||1;
             const src=String(d.sourceId||"");
+            const a=Array.isArray(d.artworks)?d.artworks.map(v=>parseInt(v,10)):[];
+            const n=a.length,c={};
             if(email.length>254||!RE.test(email))return r(400,{error:"bad_email"});
-            if(!(art>=1&&art<=23))return r(400,{error:"bad_artwork"});
             if(!(n>=1&&n<=24))return r(400,{error:"bad_pieces"});
+            for(const x of a){
+              if(!(x>=1&&x<=23))return r(400,{error:"bad_artwork"});
+              c[x]=(c[x]||0)+1;
+              if(c[x]>(x===23?2:1))return r(400,{error:"dup_artwork"});
+            }
             if(!src)return r(400,{error:"no_source"});
-            const id=randomUUID(),amt=n*500,now=new Date().toISOString();
+            const id=randomUUID(),amt=n*500,now=new Date().toISOString(),ls=a.join(",");
             let pay;
             try{
               const res=await fetch("https://connect.squareup.com/v2/payments",{method:"POST",
                 headers:{authorization:"Bearer "+(await tok()),"square-version":"2025-01-23","content-type":"application/json"},
                 body:JSON.stringify({source_id:src,idempotency_key:id,location_id:process.env.SQ_LOCATION,
                   amount_money:{amount:amt,currency:"JPY"},buyer_email_address:email,
-                  note:"ONE HEART artwork "+art+" x"+n})});
+                  note:"ONE HEART "+n+" places ["+ls+"]"})});
               pay=await res.json();
               if(!res.ok){
                 const m=(pay.errors&&pay.errors[0]&&(pay.errors[0].detail||pay.errors[0].code))||"declined";
@@ -178,11 +183,11 @@ Resources:
             }catch(e){console.error("sq",e);return r(502,{error:"payment_error"})}
             try{
               await ddb.send(new PutItemCommand({TableName:process.env.ORDERS,Item:{
-                orderId:{S:id},email:{S:email},artwork:{N:String(art)},pieces:{N:String(n)},
+                orderId:{S:id},email:{S:email},artworks:{S:ls},pieces:{N:String(n)},
                 amount:{N:String(amt)},paymentId:{S:(pay.payment&&pay.payment.id)||""},
                 status:{S:"paid"},portrait:{S:""},createdAt:{S:now},ip:{S:ip}}}));
             }catch(e){console.error("ddb",e)}
-            await mail("ONE HEART - order "+id,email+"\nartwork "+art+" x"+n+" = JPY "+amt+"\n"+now);
+            await mail("ONE HEART - order "+id,email+"\n"+n+" places ["+ls+"] = JPY "+amt+"\n"+now);
             return r(200,{ok:true,orderId:id,amount:amt});
           }
           exports.handler=async(e)=>{
