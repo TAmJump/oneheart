@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Take Your Place — ONE HEART PROJECT</title>
+<meta name="description" content="Choose one of the twenty-three artworks, take your place for ¥500, and send one portrait. Your photograph becomes a single piece and stays in that position.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="Take Your Place — ONE HEART PROJECT">
+<meta property="og:description" content="Choose an artwork. Take your place. Send one portrait.">
+<meta property="og:image" content="https://oneheart.tamjump.com/images/23grid.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#111111;
+    --dim:#3a3527;
+    --coral:#E53935;
+    --bg:#FFD900;
+    --panel:#FFF3A8;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;background:var(--bg)}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.75;font-size:16px;
+  }
+  img{display:block;width:100%;height:auto}
+  a{color:var(--ink);text-decoration:none}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 28px}
+  .narrow{max-width:38em}
+
+  .topnav{border-bottom:3px solid var(--ink);padding:18px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+
+  header{padding:64px 0 44px}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;margin:0 0 18px}
+  h1{font-size:46px;line-height:1.08;margin:0 0 22px;font-weight:800;letter-spacing:-.025em}
+  h1 .accent{color:var(--coral)}
+  .lede{color:var(--dim);font-size:17px;margin:0;max-width:38em}
+
+  .figures{display:flex;flex-wrap:wrap;border-top:3px solid var(--ink);border-bottom:3px solid var(--ink)}
+  .fig{flex:1 1 180px;padding:26px 24px;border-right:2px solid var(--ink)}
+  .fig:last-child{border-right:0}
+  .fig .n{font-size:30px;font-weight:900;letter-spacing:-.02em;line-height:1.1;color:var(--coral)}
+  .fig .l{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+
+  section{padding:58px 0;border-top:3px solid var(--ink)}
+  section:first-of-type{border-top:0}
+  h2{font-size:30px;line-height:1.2;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+  .stepno{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--coral);font-weight:700;margin:0 0 10px}
+  p{margin:0 0 18px}
+  .muted{color:var(--dim)}
+
+  /* artwork grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:32px}
+  .card{border:3px solid var(--ink);background:var(--panel);padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit;display:block;width:100%}
+  .card .thumb{border-bottom:3px solid var(--ink);background:var(--panel)}
+  .card .meta{padding:14px 16px 16px}
+  .card .no{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--dim)}
+  .card .ttl{font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.25;margin-top:4px}
+  .card .hl{font-size:12px;letter-spacing:.04em;color:var(--dim);margin-top:6px;line-height:1.5}
+  .card:hover{background:#fff}
+  .card[aria-pressed="true"]{border-color:var(--coral);background:#fff;box-shadow:0 0 0 3px var(--coral) inset}
+  .card[aria-pressed="true"] .thumb{border-bottom-color:var(--coral)}
+  .card[aria-pressed="true"] .no{color:var(--coral)}
+
+  /* panels */
+  .panel{border:3px solid var(--ink);background:var(--panel);padding:32px}
+  .panel h3{font-size:20px;margin:0 0 10px;font-weight:800;letter-spacing:-.01em}
+  .panel p{font-size:15px;color:var(--dim)}
+
+  .row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  label.lbl{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin:0 0 8px}
+  input[type=email],select{
+    padding:14px 16px;font:inherit;font-size:16px;
+    border:3px solid var(--ink);background:#fff;color:var(--ink);border-radius:0;
+    -webkit-appearance:none;appearance:none;min-width:0
+  }
+  input[type=email]{flex:1 1 320px}
+  select{flex:0 0 140px;background-image:none}
+  input[type=email]:focus,select:focus{outline:3px solid var(--coral);outline-offset:2px}
+
+  .total{border-top:2px solid var(--ink);margin-top:24px;padding-top:20px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+  .total .l{font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+  .total .v{font-size:34px;font-weight:900;letter-spacing:-.02em;color:var(--coral)}
+
+  #card-container{border:3px solid var(--ink);background:#fff;padding:14px 16px;min-height:62px}
+
+  .btn{
+    padding:16px 28px;font:inherit;font-weight:700;font-size:15px;letter-spacing:.04em;
+    border:3px solid var(--ink);background:var(--ink);color:#FFD900;cursor:pointer;border-radius:0
+  }
+  .btn:hover:not(:disabled){background:var(--coral);border-color:var(--coral);color:#fff}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .fineprint{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.7}
+  .msg{display:none;border:3px solid var(--coral);background:#fff;padding:16px 18px;margin-top:20px;font-size:14px;font-weight:600}
+
+  .selected{display:flex;gap:16px;align-items:center;border:3px solid var(--ink);background:#fff;padding:14px 16px;margin-bottom:24px}
+  .selected .sthumb{flex:0 0 108px}
+  .selected .sno{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--coral)}
+  .selected .sttl{font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.2;margin-top:2px}
+  .selected.empty{color:var(--dim);font-weight:600;display:block}
+
+  #done{display:none}
+  .receipt{display:grid;grid-template-columns:auto 1fr;gap:8px 22px;font-size:14px;margin:22px 0 0;border-top:2px solid var(--ink);padding-top:20px}
+  .receipt dt{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--dim)}
+  .receipt dd{margin:0;font-weight:700;word-break:break-all}
+
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+  .cta{display:inline-block;padding:14px 24px;border:3px solid var(--ink);font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+  .cta:hover{background:var(--ink);color:#FFD900}
+
+  footer{background:var(--ink);color:#b8b4ad;padding:56px 0;font-size:13px;line-height:1.9}
+  footer a{color:#d9c37a}
+  footer .brand{color:#f2f0ec;font-weight:700;letter-spacing:.02em;font-size:15px;margin-bottom:8px}
+  footer .fnav{margin-top:16px;display:flex;flex-wrap:wrap;gap:18px}
+
+  @media (max-width:860px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:560px){
+    h1{font-size:34px}
+    h2{font-size:25px}
+    .grid{grid-template-columns:1fr}
+    .panel{padding:24px 20px}
+    select{flex:1 1 100%}
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="wrap"><a href="/">← One Heart Project</a></div>
+</div>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Participation</p>
+    <h1>Choose an artwork.<br>Take your <span class="accent">place</span>.</h1>
+    <p class="lede">One place is ¥500. Your portrait becomes a single piece of the artwork you choose, and it stays in that position. You may take up to twenty-four places in total.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="figures">
+    <div class="fig"><div class="n">23</div><div class="l">Artworks</div></div>
+    <div class="fig"><div class="n">60,000</div><div class="l">Places in total</div></div>
+    <div class="fig"><div class="n">¥500</div><div class="l">One place · one piece</div></div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <p class="stepno">Step 01</p>
+    <h2>Choose your artwork.</h2>
+    <p class="muted narrow">Each artwork carries its own question. Pick the one you want to belong to.</p>
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="stepno">Step 02</p>
+    <h2>Take your place.</h2>
+    <p class="muted narrow">Confirm how many places you want and where we should write to you.</p>
+
+    <div class="panel" style="margin-top:30px">
+      <div class="selected empty" id="selected">No artwork selected yet. Choose one above.</div>
+
+      <div style="margin-bottom:22px">
+        <label class="lbl" for="pieces">Places</label>
+        <div class="row">
+          <select id="pieces"></select>
+          <span class="muted" style="font-size:14px">¥500 each</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="lbl" for="email">Email address</label>
+        <div class="row">
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+      </div>
+
+      <div class="total">
+        <span class="l">Total</span>
+        <span class="v" id="total">¥500</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="stepno">Step 03</p>
+    <h2>Payment.</h2>
+    <p class="muted narrow">Card details are handled by Square and are never sent to our servers.</p>
+
+    <div class="panel" style="margin-top:30px">
+      <label class="lbl" for="card-container">Card</label>
+      <div id="card-container"></div>
+
+      <div class="row" style="margin-top:24px">
+        <button class="btn" id="pay" type="button" disabled>Pay ¥500</button>
+      </div>
+
+      <div class="msg" id="msg"></div>
+
+      <p class="fineprint">By paying you agree to the <a href="/terms.html" style="text-decoration:underline">Participation Terms</a>. Places are limited and are filled in the order they are paid. Your email address is used only for this project and is not sold or passed to anyone else. Write to <a href="mailto:info@tamjump.com" style="text-decoration:underline">info@tamjump.com</a> with any question.</p>
+    </div>
+  </div>
+</section>
+
+<section id="done">
+  <div class="wrap">
+    <p class="stepno">Confirmed</p>
+    <h2>Your place is held.</h2>
+    <p class="muted narrow">A record of this payment has been created. Next, send us your portrait so we can place it.</p>
+
+    <div class="panel" style="margin-top:30px">
+      <h3>Send one portrait</h3>
+      <p>Email your photograph to <a href="mailto:info@tamjump.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">info@tamjump.com</a> with the order number below in the subject line. One clear photograph of a face, JPEG or PNG, at least 800×800 pixels. Send one photograph for each place you have taken.</p>
+      <p>Upload directly on this page will replace email later. If you have already sent a photograph, nothing else is needed from you.</p>
+      <dl class="receipt">
+        <dt>Order</dt><dd id="r-order">—</dd>
+        <dt>Artwork</dt><dd id="r-art">—</dd>
+        <dt>Places</dt><dd id="r-pieces">—</dd>
+        <dt>Paid</dt><dd id="r-amount">—</dd>
+      </dl>
+    </div>
+
+    <div class="cta-row">
+      <a class="cta" href="/">Back to the project</a>
+      <a class="cta" href="/verify/">Verify a certificate</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">ONE HEART PROJECT</div>
+    Operated by TAmJ Inc., Tokyo, Japan<br>
+    <a href="mailto:info@tamjump.com">info@tamjump.com</a>
+    <div class="fnav">
+      <a href="/ceo.html">You are the CEO</a>
+      <a href="/terms.html">Participation Terms</a>
+      <a href="/verify/">Verify a certificate</a>
+      <a href="https://tamjump.com/">TAmJ Inc.</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://web.squarecdn.com/v1/square.js"></script>
+<script>
+var ORDER_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/order";
+var SQ_APP_ID      = "sq0idp-DDvfI0E05acVUIYXHZimkQ";
+var SQ_LOCATION_ID = "LH3WP4241WJEV";
+var MAX_PLACES     = 24;
+var PRICE          = 500;
+
+var ARTWORKS = [
+  {n:1,  t:"ONE EARTH",     h:"We all begin here."},
+  {n:2,  t:"DIFFERENT",     h:"Difference makes us whole."},
+  {n:3,  t:"WHO AM I?",     h:"Who are you, really?"},
+  {n:4,  t:"WONDER",        h:"Look. Question. Discover."},
+  {n:5,  t:"DREAMER",       h:"Dream what doesn't exist yet."},
+  {n:6,  t:"MY VOICE",      h:"Let your voice exist."},
+  {n:7,  t:"LOVE INSIDE",   h:"Love begins within."},
+  {n:8,  t:"FACE TO FACE",  h:"Meet someone different."},
+  {n:9,  t:"CONNECTED",     h:"No heart stands alone."},
+  {n:10, t:"LIFELINE",      h:"We keep each other alive."},
+  {n:11, t:"HEART KING",    h:"Who rules your heart?"},
+  {n:12, t:"KING OF ME",    h:"Own your life."},
+  {n:13, t:"BURNING SOUL",  h:"Let your soul burn."},
+  {n:14, t:"COURAGE",       h:"Move forward with fear."},
+  {n:15, t:"FADING AWAY",   h:"Nothing lasts forever."},
+  {n:16, t:"ETERNAL",       h:"Something remains."},
+  {n:17, t:"TWO MINDS",     h:"Two minds create the unknown."},
+  {n:18, t:"THE UNKNOWN",   h:"The future belongs to no one yet."},
+  {n:19, t:"HOPE STAR",     h:"Keep a light ahead."},
+  {n:20, t:"ANGEL WITHIN",  h:"Goodness lives within us."},
+  {n:21, t:"DEVIL WITHIN",  h:"Darkness lives within us too."},
+  {n:22, t:"THE EYE",       h:"See beyond good and evil."},
+  {n:23, t:"ONE HEART",     h:"In the end, we become one."}
+];
+
+var pad     = function(n){ return n < 10 ? "0" + n : String(n); };
+var yen     = function(v){ return "¥" + v.toLocaleString("en-US"); };
+var $       = function(id){ return document.getElementById(id); };
+var picked  = null;
+var card    = null;
+var busy    = false;
+
+/* ---- artwork grid ---- */
+(function(){
+  var g = $("grid");
+  ARTWORKS.forEach(function(a){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "card";
+    b.setAttribute("aria-pressed", "false");
+    b.dataset.n = a.n;
+    b.innerHTML =
+      '<div class="thumb"><img src="/images/artworks/' + pad(a.n) + '.jpg" alt="' + a.t +
+      ' mosaic artwork for the WE ARE ALL ONE HEART project." loading="lazy"></div>' +
+      '<div class="meta"><div class="no">' + pad(a.n) + '</div>' +
+      '<div class="ttl">' + a.t + '</div><div class="hl">' + a.h + '</div></div>';
+    b.addEventListener("click", function(){ select(a.n); });
+    g.appendChild(b);
+  });
+})();
+
+/* ---- places select ---- */
+(function(){
+  var s = $("pieces");
+  for (var i = 1; i <= MAX_PLACES; i++){
+    var o = document.createElement("option");
+    o.value = i;
+    o.textContent = i === 1 ? "1 place" : i + " places";
+    s.appendChild(o);
+  }
+  s.addEventListener("change", refresh);
+})();
+
+function select(n){
+  picked = ARTWORKS.filter(function(a){ return a.n === n; })[0];
+  var cards = document.querySelectorAll(".card");
+  for (var i = 0; i < cards.length; i++){
+    cards[i].setAttribute("aria-pressed", String(Number(cards[i].dataset.n) === n));
+  }
+  var box = $("selected");
+  box.className = "selected";
+  box.innerHTML =
+    '<div class="sthumb"><img src="/images/artworks/' + pad(n) + '.jpg" alt=""></div>' +
+    '<div><div class="sno">Artwork ' + pad(n) + '</div><div class="sttl">' + picked.t + '</div></div>';
+  refresh();
+}
+
+function pieces(){ return parseInt($("pieces").value, 10) || 1; }
+
+function refresh(){
+  var amount = pieces() * PRICE;
+  $("total").textContent = yen(amount);
+  $("pay").textContent = "Pay " + yen(amount);
+  $("pay").disabled = busy || !picked || !card;
+}
+
+function say(t){
+  var m = $("msg");
+  m.textContent = t;
+  m.style.display = "block";
+}
+
+function clearMsg(){ $("msg").style.display = "none"; }
+
+/* ---- Square ---- */
+(function(){
+  if (!window.Square){ say("Payment could not be loaded. Please reload the page, or write to info@tamjump.com."); return; }
+  var payments = window.Square.payments(SQ_APP_ID, SQ_LOCATION_ID);
+  payments.card({
+    style: {
+      input: { fontSize: "16px", color: "#111111" },
+      "input::placeholder": { color: "#7a7466" }
+    }
+  }).then(function(c){
+    card = c;
+    return c.attach("#card-container");
+  }).then(function(){
+    refresh();
+  }).catch(function(){
+    say("The card form could not be shown. Please reload the page, or write to info@tamjump.com.");
+  });
+})();
+
+/* ---- submit ---- */
+$("pay").addEventListener("click", function(){
+  if (busy) return;
+  clearMsg();
+
+  var email = $("email").value.trim().toLowerCase();
+  if (!picked){ say("Choose an artwork first."); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+    say("Please enter a valid email address.");
+    $("email").focus();
+    return;
+  }
+
+  busy = true;
+  $("pay").disabled = true;
+  $("pay").textContent = "Processing";
+
+  card.tokenize().then(function(res){
+    if (res.status !== "OK"){
+      throw new Error((res.errors && res.errors[0] && res.errors[0].message) || "Card details could not be read.");
+    }
+    return fetch(ORDER_ENDPOINT, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        email:    email,
+        artwork:  picked.n,
+        pieces:   pieces(),
+        sourceId: res.token
+      })
+    });
+  }).then(function(r){
+    return r.json().then(function(d){ return { ok: r.ok, d: d }; });
+  }).then(function(out){
+    if (!out.ok){
+      var e = out.d || {};
+      throw new Error(e.detail || e.error || "The payment was not completed.");
+    }
+    show(out.d);
+  }).catch(function(err){
+    busy = false;
+    $("pay").disabled = false;
+    refresh();
+    say(err.message || "Something went wrong. Nothing has been charged. Please try again, or write to info@tamjump.com.");
+  });
+});
+
+function show(d){
+  $("r-order").textContent  = d.orderId || "—";
+  $("r-art").textContent    = pad(picked.n) + " " + picked.t;
+  $("r-pieces").textContent = pieces();
+  $("r-amount").textContent = yen(d.amount || pieces() * PRICE);
+  $("done").style.display   = "block";
+  $("done").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+</script>
+
+</body>
+</html>
