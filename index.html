@@ -119,6 +119,13 @@
   .card .sub{font-size:12px;color:var(--dim);line-height:1.6}
   .card.final{outline:2px solid var(--coral);outline-offset:-2px}
 
+  .prog{margin-top:12px;border-top:2px solid var(--ink);padding-top:10px}
+  .prog .track{height:10px;border:2px solid var(--ink);background:#fff;position:relative}
+  .prog .fill{position:absolute;left:0;top:0;bottom:0;background:var(--coral);width:0}
+  .prog .nums{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:11px;letter-spacing:.04em;font-weight:700}
+  .prog .nums .left{color:var(--dim);font-weight:600}
+  .progress-note{font-size:13px;color:var(--dim);margin:14px 0 0}
+
   .cta{
     display:inline-block;padding:16px 34px;background:var(--ink);color:#f2f0ec;
     font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase
@@ -304,6 +311,7 @@
     <p class="eyebrow">The collection</p>
     <h2>23 artworks. One story.</h2>
     <p class="muted narrow">Read in order, the twenty-three artworks trace one life: being born, becoming yourself, meeting others, and connecting. Twenty-two carry a face each. The twenty-third is where they come together, and it is built from 5,000 portraits instead of 2,500.</p>
+    <p class="progress-note" id="progress-note"></p>
 
     <div class="grid">
       <div class="card"><figure><img src="images/artworks/01.jpg" alt="01 ONE EARTH"></figure><div class="body"><div class="no">01</div><div class="ttl">ONE EARTH</div><div class="sub">We all begin here.</div></div></div>
@@ -416,6 +424,49 @@
     </div>
   </div>
 </footer>
+
+<script>
+(function(){
+  var cards = document.querySelectorAll(".grid .card");
+  if (!cards.length) return;
+
+  fetch("/data/progress.json?v=" + Date.now()).then(function(r){
+    if (!r.ok) throw new Error("no data");
+    return r.json();
+  }).then(function(d){
+    var n = 0;
+    for (var i = 0; i < cards.length; i++){
+      var body = cards[i].querySelector(".body");
+      var no   = cards[i].querySelector(".no");
+      if (!body || !no) continue;
+
+      var k = String(parseInt(no.textContent, 10));
+      var a = d.artworks && d.artworks[k];
+      if (!a) continue;
+
+      var taken = Math.max(0, Math.min(a.taken, a.total));
+      var left  = a.total - taken;
+      var pct   = a.total ? (taken / a.total) * 100 : 0;
+      n += taken;
+
+      var el = document.createElement("div");
+      el.className = "prog";
+      el.innerHTML =
+        '<div class="track"><div class="fill"></div></div>' +
+        '<div class="nums"><span>' + taken.toLocaleString("en-US") + ' taken</span>' +
+        '<span class="left">' + left.toLocaleString("en-US") + ' left</span></div>';
+      body.appendChild(el);
+      el.querySelector(".fill").style.width = (pct < 1 && taken > 0 ? 1 : pct) + "%";
+    }
+
+    var note = document.getElementById("progress-note");
+    if (note){
+      note.textContent = n.toLocaleString("en-US") +
+        " of 60,000 places taken. Updated daily — last updated " + d.updated + ".";
+    }
+  }).catch(function(){});
+})();
+</script>
 
 </body>
 </html>
