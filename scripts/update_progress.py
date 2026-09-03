@@ -34,7 +34,7 @@ OUT = ROOT / "data" / "progress.json"
 
 PROJECT_URL = os.environ.get(
     "KS_PROJECT_URL",
-    "https://www.kickstarter.com/projects/tamj/1654775797",
+    "https://www.kickstarter.com/projects/tamj/we-are-all-one-heart-23-pieces-one-world",
 ).rstrip("/")
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
