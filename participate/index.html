@@ -69,6 +69,11 @@
   .card.on .thumb{border-bottom-color:var(--coral)}
   .card.on .no{color:var(--coral)}
   .card.on .tag{display:block}
+  .card.full{cursor:not-allowed}
+  .card.full:hover{background:var(--panel)}
+  .card.full .thumb img{opacity:.38}
+  .card.full .no,.card.full .ttl,.card.full .hl{opacity:.5}
+  .card.full .tag{display:block;background:var(--ink);color:#FFD900}
 
   .prog{margin-top:12px;border-top:2px solid var(--ink);padding-top:10px}
   .prog .track{height:10px;border:2px solid var(--ink);background:#fff;position:relative}
@@ -172,7 +177,7 @@
     <h2>Choose your artworks.</h2>
     <p class="muted narrow">Each artwork carries its own question. Select every one you want to belong to.</p>
 
-    <div class="rule">One place per artwork. ONE HEART, the twenty-third, is the only artwork you may take twice — click it again for a second place. Twenty-four places is the most any one person can hold.</div>
+    <div class="rule">One place per artwork. ONE HEART, the twenty-third, is the only artwork you may take twice — click it again for a second place. Twenty-four places is the most any one person can hold. An artwork with no places left is marked FULL and cannot be selected.</div>
 
     <p class="progress-note" id="progress-note"></p>
 
@@ -305,6 +310,7 @@ var $    = function(id){ return document.getElementById(id); };
 var art  = function(n){ return ARTWORKS.filter(function(a){ return a.n === n; })[0]; };
 
 var held = {};   /* artwork number -> 1 or 2 */
+var openPlaces = {};   /* artwork number -> places still open. undefined until progress.json loads */
 var card = null;
 var busy = false;
 var last = null;
@@ -328,10 +334,19 @@ var last = null;
   });
 })();
 
+function maxFor(n){
+  var m = MAX_PER(n);
+  var open = openPlaces[n];
+  if (open === undefined || open === null) return m;
+  return Math.max(0, Math.min(m, open));
+}
+
 function cycle(n){
+  var lim = maxFor(n);
+  if (lim < 1) return;
   var cur = held[n] || 0;
   var next = cur + 1;
-  if (next > MAX_PER(n)) next = 0;
+  if (next > lim) next = 0;
   if (next === 0) { delete held[n]; } else { held[n] = next; }
   refresh();
 }
@@ -350,7 +365,23 @@ function flat(){
 
 function refresh(){
   ARTWORKS.forEach(function(a){
-    var el = $("c" + a.n), q = held[a.n] || 0;
+    var el = $("c" + a.n), lim = maxFor(a.n), q = held[a.n] || 0;
+
+    if (q > lim){                       /* capacity arrived after the click */
+      if (lim < 1) { delete held[a.n]; q = 0; } else { held[a.n] = lim; q = lim; }
+    }
+
+    if (lim < 1){
+      el.classList.add("full");
+      el.classList.remove("on");
+      el.setAttribute("aria-disabled", "true");
+      $("t" + a.n).textContent = "Full";
+      return;
+    }
+
+    el.classList.remove("full");
+    el.removeAttribute("aria-disabled");
+
     if (q > 0){
       el.classList.add("on");
       $("t" + a.n).textContent = q > 1 ? q + " places" : "Taken";
@@ -415,7 +446,11 @@ function clearMsg(){ $("msg").style.display = "none"; }
         '<span class="left">' + left.toLocaleString("en-US") + ' left</span></div>';
       meta.appendChild(el);
       el.querySelector(".fill").style.width = (pct < 1 && taken > 0 ? 1 : pct) + "%";
+
+      openPlaces[a.n] = left;
     });
+
+    refresh();
 
     var note = document.getElementById("progress-note");
     if (note){
