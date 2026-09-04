@@ -72,6 +72,117 @@
     return cv.toDataURL("image/jpeg", QUALITY);
   }
 
+
+  /* ---- the piece: front is the photograph, back is the name ---- */
+
+  var CARD_W = 900, CARD_H = 1200, R = 46;
+
+  function roundRect(cx, x, y, w, h, r) {
+    cx.beginPath();
+    cx.moveTo(x + r, y);
+    cx.arcTo(x + w, y, x + w, y + h, r);
+    cx.arcTo(x + w, y + h, x, y + h, r);
+    cx.arcTo(x, y + h, x, y, r);
+    cx.arcTo(x, y, x + w, y, r);
+    cx.closePath();
+  }
+
+  function frontCard(im) {
+    var cv = d.createElement("canvas");
+    cv.width = CARD_W; cv.height = CARD_H;
+    var cx = cv.getContext("2d");
+    cx.fillStyle = "#F4F4F2";
+    roundRect(cx, 0, 0, CARD_W, CARD_H, R);
+    cx.fill();
+    cx.save();
+    roundRect(cx, 0, 0, CARD_W, CARD_H, R);
+    cx.clip();
+    var s = Math.max(CARD_W / im.naturalWidth, CARD_H / im.naturalHeight);
+    var w = im.naturalWidth * s, h = im.naturalHeight * s;
+    cx.drawImage(im, (CARD_W - w) / 2, (CARD_H - h) / 2, w, h);
+    cx.restore();
+    cx.strokeStyle = "#111111";
+    cx.lineWidth = 6;
+    roundRect(cx, 3, 3, CARD_W - 6, CARD_H - 6, R - 3);
+    cx.stroke();
+    return cv;
+  }
+
+  function backCard(name) {
+    var cv = d.createElement("canvas");
+    cv.width = CARD_W; cv.height = CARD_H;
+    var cx = cv.getContext("2d");
+    cx.fillStyle = "#0B0B0B";
+    roundRect(cx, 0, 0, CARD_W, CARD_H, R);
+    cx.fill();
+    cx.strokeStyle = "#E0B34A";
+    cx.lineWidth = 3;
+    roundRect(cx, 26, 26, CARD_W - 52, CARD_H - 52, R - 16);
+    cx.stroke();
+
+    var size = 150;
+    cx.textAlign = "center";
+    cx.textBaseline = "middle";
+    cx.fillStyle = "#E9BC57";
+    while (size > 28) {
+      cx.font = size + 'px "Great Vibes", "Hiragino Mincho ProN", "Yu Mincho", serif';
+      if (cx.measureText(name).width <= CARD_W - 200) { break; }
+      size -= 4;
+    }
+    cx.fillText(name, CARD_W / 2, CARD_H / 2);
+    return cv;
+  }
+
+  function sheet(front, back) {
+    var pad = 70, gap = 70;
+    var cv = d.createElement("canvas");
+    cv.width = pad * 2 + CARD_W * 2 + gap;
+    cv.height = pad * 2 + CARD_H + 120;
+    var cx = cv.getContext("2d");
+    cx.fillStyle = "#FFD900";
+    cx.fillRect(0, 0, cv.width, cv.height);
+    cx.drawImage(front, pad, pad);
+    cx.drawImage(back, pad + CARD_W + gap, pad);
+    cx.fillStyle = "#111111";
+    cx.textBaseline = "alphabetic";
+    cx.textAlign = "center";
+    cx.font = '600 46px Inter, Helvetica, Arial, sans-serif';
+    cx.fillText("ONE PIECE OF ONE HEART", cv.width / 2, pad + CARD_H + 84);
+    return cv;
+  }
+
+  function showCard(stage, ids, src, name) {
+    var box = d.createElement("div");
+    box.className = "piece";
+    stage.innerHTML = "";
+    stage.appendChild(box);
+    box.innerHTML = '<p class="cap">This is your piece. The front carries your face, the back carries your name. ' +
+      'It goes into the artwork exactly like this.</p><div class="cards"></div>' +
+      '<button class="btn alt" type="button" id="' + ids.stage + '-save">Save your piece</button>';
+    var cards = box.querySelector(".cards");
+
+    loadImage(src).then(function (im) {
+      var ready = w.document.fonts && w.document.fonts.load
+        ? w.document.fonts.load('60px "Great Vibes"').catch(function () { return null; })
+        : Promise.resolve(null);
+      return ready.then(function () {
+        var f = frontCard(im), b = backCard(name);
+        [f, b].forEach(function (c) {
+          var i = new Image();
+          i.src = c.toDataURL("image/png");
+          i.alt = "";
+          cards.appendChild(i);
+        });
+        el(ids.stage + "-save").addEventListener("click", function () {
+          var a = d.createElement("a");
+          a.href = sheet(f, b).toDataURL("image/png");
+          a.download = "one-heart-piece.png";
+          a.click();
+        });
+      });
+    }).catch(function () { box.innerHTML = ""; });
+  }
+
   /* cfg: { endpoint, ids:{cam,file,stage,send,msg}, order: function -> {orderId,email} } */
   w.portraitUpload = function (cfg) {
     var ids = cfg.ids;
@@ -228,6 +339,7 @@
         if (cam) { cam.disabled = true; }
         if (nameBox) { nameBox.disabled = true; }
         say("Your portrait is in. A confirmation is on its way to you, and nothing else is needed.", true);
+        showCard(stage, ids, data, nm);
       }).catch(function (err) {
         busy = false;
         send.disabled = false;
