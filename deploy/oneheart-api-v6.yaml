@@ -1,0 +1,486 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ONE HEART PROJECT - participation backend (notify, place reservation, Square order, portrait storage)
+
+Parameters:
+  SiteOrigin:
+    Type: String
+    Default: https://oneheart.tamjump.com
+  NotifyTo:
+    Type: String
+    Default: info@tamjump.com
+  NotifyFrom:
+    Type: String
+    Default: info@tamjump.com
+  SquareLocationId:
+    Type: String
+    Default: LH3WP4241WJEV
+  SquareTokenParam:
+    Type: String
+    Default: /oneheart/square/access-token
+    Description: SSM SecureString parameter holding the Square production access token.
+
+Resources:
+
+  SignupsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-signups
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: email, AttributeType: S}
+      KeySchema:
+        - {AttributeName: email, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: orderId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: orderId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  SlotsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-slots
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: artworkId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: artworkId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  PortraitsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'oneheart-portraits-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: [!Ref SiteOrigin]
+            AllowedMethods: [PUT, GET, HEAD]
+            AllowedHeaders: ['*']
+            MaxAge: 3000
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  FnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: oneheart-api-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: oneheart-api-inline
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:Scan]
+                Resource:
+                  - !GetAtt SignupsTable.Arn
+                  - !GetAtt OrdersTable.Arn
+                  - !GetAtt SlotsTable.Arn
+              - Effect: Allow
+                Action: [ses:SendEmail]
+                Resource: '*'
+              - Effect: Allow
+                Action: [s3:PutObject, s3:GetObject]
+                Resource: !Sub '${PortraitsBucket.Arn}/*'
+              - Effect: Allow
+                Action: [ssm:GetParameter]
+                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SquareTokenParam}'
+
+  Fn:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: oneheart-api
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Timeout: 20
+      MemorySize: 256
+      Role: !GetAtt FnRole.Arn
+      Environment:
+        Variables:
+          TABLE: !Ref SignupsTable
+          ORDERS: !Ref OrdersTable
+          SLOTS: !Ref SlotsTable
+          BUCKET: !Ref PortraitsBucket
+          ORIGIN: !Ref SiteOrigin
+          NOTIFY_TO: !Ref NotifyTo
+          NOTIFY_FROM: !Ref NotifyFrom
+          SQ_LOCATION: !Ref SquareLocationId
+          TOKEN_PARAM: !Ref SquareTokenParam
+      Code:
+        ZipFile: |
+          const {DynamoDBClient,PutItemCommand,UpdateItemCommand,GetItemCommand,ScanCommand}=require("@aws-sdk/client-dynamodb");
+          const {SESClient,SendEmailCommand}=require("@aws-sdk/client-ses");
+          const {SSMClient,GetParameterCommand}=require("@aws-sdk/client-ssm");
+          const {S3Client,PutObjectCommand}=require("@aws-sdk/client-s3");
+          const {randomUUID}=require("crypto");
+          const ddb=new DynamoDBClient({}),ses=new SESClient({}),ssm=new SSMClient({}),s3=new S3Client({});
+          const H={"content-type":"application/json","access-control-allow-origin":process.env.ORIGIN};
+          const RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+          const r=(c,b)=>({statusCode:c,headers:H,body:JSON.stringify(b)});
+          let TOK;
+          async function tok(){
+            if(!TOK){const p=await ssm.send(new GetParameterCommand({Name:process.env.TOKEN_PARAM,WithDecryption:true}));TOK=p.Parameter.Value}
+            return TOK;
+          }
+          const CS="UTF-8";
+          const SITE="https://oneheart.tamjump.com";
+          const TITLES=["ONE EARTH","DIFFERENT","WHO AM I?","WONDER","DREAMER","MY VOICE","LOVE INSIDE","FACE TO FACE","CONNECTED","LIFELINE","HEART KING","KING OF ME","BURNING SOUL","COURAGE","FADING AWAY","ETERNAL","TWO MINDS","THE UNKNOWN","HOPE STAR","ANGEL WITHIN","DEVIL WITHIN","THE EYE","ONE HEART"];
+          const TT=n=>TITLES[n-1]||("ARTWORK "+n);
+          const P2=n=>(n<10?"0":"")+n;
+          const YEN=v=>"\u00A5"+Number(v).toLocaleString("en-US");
+          async function send(to,s,t,h){
+            const b={Text:{Data:t,Charset:CS}};
+            if(h)b.Html={Data:h,Charset:CS};
+            try{await ses.send(new SendEmailCommand({Source:"ONE HEART <"+process.env.NOTIFY_FROM+">",
+              Destination:{ToAddresses:[to]},ReplyToAddresses:[process.env.NOTIFY_FROM],
+              Message:{Subject:{Data:s,Charset:CS},Body:b}}))}catch(e){console.error("ses",e.name)}
+          }
+          const mail=(s,t)=>send(process.env.NOTIFY_TO,s,t);
+          const F="font-family:Helvetica,Arial,sans-serif";
+          const LBL="font-size:11px;font-weight:700;letter-spacing:.16em;color:#3a3527";
+          const PANEL="background:#FFF3A8;border:2px solid #111111;padding:26px";
+          function receipt(list,id,n,amt){
+            const rows=list.map(p=>'<tr>'
+              +'<td width="140" style="padding:0 16px 18px 0"><img src="'+SITE+'/images/artworks/'+P2(p.artwork)+'.jpg" width="140" height="93" alt="'+TT(p.artwork)+'" style="display:block;width:140px;height:93px;border:2px solid #111111"></td>'
+              +'<td style="padding:0 0 18px 0;'+F+'">'
+              +'<div style="font-size:11px;font-weight:700;letter-spacing:.16em;color:#E53935">'+P2(p.artwork)+'</div>'
+              +'<div style="font-size:19px;font-weight:800;color:#111111;line-height:1.3;padding:2px 0">'+TT(p.artwork)+'</div>'
+              +'<div style="font-size:14px;color:#3a3527">Piece '+p.piece+' &middot; row '+p.row+', column '+p.col+'</div>'
+              +'</td></tr>').join("");
+            const dl=(k,v)=>'<tr><td style="'+F+';'+LBL+';padding:5px 18px 5px 0;white-space:nowrap">'+k+'</td>'
+              +'<td style="'+F+';font-size:14px;font-weight:700;color:#111111;padding:5px 0">'+v+'</td></tr>';
+            const btn=(u,t)=>'<td style="padding:0 12px 12px 0"><a href="'+u+'" style="'+F+';display:inline-block;background:#FFFFFF;border:2px solid #111111;color:#111111;text-decoration:none;font-size:12px;font-weight:800;letter-spacing:.14em;padding:14px 20px">'+t+'</a></td>';
+            return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;padding:0;background:#FFD900">'
+              +'<div style="display:none;max-height:0;overflow:hidden">'+n+' place'+(n>1?'s':'')+' held. Send one portrait.</div>'
+              +'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFD900"><tr><td align="center" style="padding:32px 16px 44px">'
+              +'<table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:600px;max-width:100%">'
+              +'<tr><td style="padding-bottom:20px"><img src="'+SITE+'/images/23grid.jpg" width="600" height="338" alt="WE ARE ALL ONE HEART - 23 PIECES, ONE WORLD" style="display:block;width:600px;max-width:100%;height:auto;border:2px solid #111111"></td></tr>'
+              +'<tr><td style="'+F+';font-size:12px;font-weight:800;letter-spacing:.26em;color:#111111;padding-bottom:12px">WE ARE ALL ONE HEART &middot; 23 PIECES, ONE WORLD</td></tr>'
+              +'<tr><td style="border-top:2px solid #111111;padding-bottom:26px"></td></tr>'
+              +'<tr><td style="'+F+';font-size:11px;font-weight:700;letter-spacing:.2em;color:#E53935;padding-bottom:8px">CONFIRMED</td></tr>'
+              +'<tr><td style="'+F+';font-size:38px;line-height:1.1;font-weight:800;color:#111111;padding-bottom:14px">Your places are held.</td></tr>'
+              +'<tr><td style="'+F+';font-size:16px;line-height:1.7;color:#111111;padding-bottom:26px">A record of this payment has been created. Your place in each artwork is fixed from today. Next, send us one portrait so we can put it there.</td></tr>'
+              +'<tr><td style="'+PANEL+'">'
+              +'<div style="'+F+';'+LBL+';padding-bottom:16px">YOUR PLACES</div>'
+              +'<table role="presentation" cellpadding="0" cellspacing="0" width="100%">'+rows+'</table>'
+              +'<div style="border-top:1px solid #111111;margin:2px 0 14px"></div>'
+              +'<table role="presentation" cellpadding="0" cellspacing="0">'+dl("ORDER",id)+dl("PLACES",String(n))+dl("PAID",YEN(amt))+'</table>'
+              +'</td></tr><tr><td height="18" style="height:18px"></td></tr>'
+              +'<tr><td style="'+PANEL+'">'
+              +'<div style="'+F+';font-size:19px;font-weight:800;color:#111111;padding-bottom:10px">Send one portrait</div>'
+              +'<div style="'+F+';font-size:15px;line-height:1.7;color:#111111;padding-bottom:20px">One clear photograph of a face, JPEG or PNG, at least 800&times;800 pixels. The same photograph is used for every artwork you have joined unless you tell us otherwise. The button below opens the upload page with your order number already filled in, or you can reply to this email with the photograph attached.</div>'
+              +'<table role="presentation" cellpadding="0" cellspacing="0"><tr>'+btn(SITE+"/portrait/?id="+id,"SEND YOUR PORTRAIT")+'</tr></table>'
+              +'</td></tr><tr><td height="30" style="height:30px"></td></tr>'
+              +'<tr><td style="border-top:2px solid #111111;padding-top:24px"></td></tr>'
+              +'<tr><td style="'+F+';font-size:11px;font-weight:700;letter-spacing:.2em;color:#E53935;padding-bottom:10px">THANK YOU</td></tr>'
+              +'<tr><td style="'+F+';font-size:16px;line-height:1.85;color:#111111;padding-bottom:18px">'
+              +'Thank you for taking your place.<br><br>'
+              +'Somewhere in the world, other faces are arriving next to yours. You will never meet most of them, and they will never know your name, yet you are holding up the same picture together. That is the whole idea, and today it moved forward because of you.<br><br>'
+              +'May the days ahead be kind to you, and may something good find its way to you.'
+              +'</td></tr>'
+              +'<tr><td style="'+F+';font-size:15px;font-weight:800;color:#111111;padding-bottom:2px">JIN OSHITA</td></tr>'
+              +'<tr><td style="'+F+';font-size:13px;color:#3a3527;padding-bottom:30px">Founder, ONE HEART PROJECT &middot; TAmJ Inc., Tokyo</td></tr>'
+              +'<tr><td><table role="presentation" cellpadding="0" cellspacing="0"><tr>'+btn(SITE+"/","SEE THE PROJECT")+btn(SITE+"/verify/","VERIFY A CERTIFICATE")+'</tr></table></td></tr>'
+              +'<tr><td style="border-top:1px solid #111111;padding-top:18px;'+F+';font-size:12px;line-height:1.8;color:#3a3527">'
+              +'Places close on 30 June 2027. Artworks are made and delivered by 30 September 2027.<br>'
+              +'TAmJ Inc., Tokyo &middot; <a href="mailto:'+process.env.NOTIFY_TO+'" style="color:#3a3527">'+process.env.NOTIFY_TO+'</a> &middot; <a href="'+SITE+'/terms.html" style="color:#3a3527">Terms</a>'
+              +'</td></tr></table></td></tr></table></body></html>';
+          }
+          function receiptText(list,id,n,amt){
+            return "WE ARE ALL ONE HEART\n\nYour places are held.\n\n"
+              +"A record of this payment has been created. Your place in each artwork is fixed from today. Next, send us one portrait so we can put it there.\n\n"
+              +"YOUR PLACES\n"+list.map(p=>P2(p.artwork)+" "+TT(p.artwork)+" - piece "+p.piece+" (row "+p.row+", column "+p.col+")").join("\n")
+              +"\n\nOrder: "+id+"\nPlaces: "+n+"\nPaid: "+YEN(amt)
+              +"\n\nSEND ONE PORTRAIT\nOne clear photograph of a face, JPEG or PNG, at least 800x800 pixels. The same photograph is used for every artwork you have joined unless you tell us otherwise.\nUpload it here: "+SITE+"/portrait/?id="+id+"\nOr reply to this email with the photograph attached.\n\n"
+              +"THANK YOU\n\nThank you for taking your place. Somewhere in the world, other faces are arriving next to yours. You will never meet most of them, and they will never know your name, yet you are holding up the same picture together. That is the whole idea, and today it moved forward because of you.\n\nMay the days ahead be kind to you, and may something good find its way to you.\n\nJIN OSHITA\nFounder, ONE HEART PROJECT - TAmJ Inc., Tokyo\n\n"
+              +"Places close on 30 June 2027. Artworks are made and delivered by 30 September 2027.\n"
+              +SITE+"\nTAmJ Inc., Tokyo - "+process.env.NOTIFY_TO+"\n";
+          }
+          async function notify(d,ip){
+            const email=String(d.email||"").trim().toLowerCase();
+            if(email.length>254||!RE.test(email))return r(400,{error:"bad_email"});
+            const now=new Date().toISOString();
+            try{
+              await ddb.send(new PutItemCommand({TableName:process.env.TABLE,
+                Item:{email:{S:email},createdAt:{S:now},source:{S:String(d.source||"join")},ip:{S:ip}},
+                ConditionExpression:"attribute_not_exists(email)"}));
+            }catch(e){
+              if(e.name==="ConditionalCheckFailedException")return r(200,{ok:true,already:true});
+              console.error("ddb",e);return r(500,{error:"store_failed"});
+            }
+            await mail("ONE HEART - new signup",email+"\n"+now+"\n"+ip);
+            return r(200,{ok:true});
+          }
+          const SLOTS=process.env.SLOTS;
+          const TOTAL=id=>id===23?5000:2500;
+          const COLS=50;
+          const ROWS=id=>id===23?100:50;
+          const at=(id,i)=>({row:Math.ceil(i/COLS),col:((i-1)%COLS)+1,rows:ROWS(id),cols:COLS});
+          async function popFreed(id){
+            let it;
+            try{it=await ddb.send(new GetItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+              ProjectionExpression:"freed",ConsistentRead:true}))}catch(e){return 0}
+            const f=it.Item&&it.Item.freed&&it.Item.freed.NS;
+            if(!f||!f.length)return 0;
+            const n=f[0];
+            try{
+              await ddb.send(new UpdateItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+                UpdateExpression:"DELETE freed :s",ConditionExpression:"contains(freed,:n)",
+                ExpressionAttributeValues:{":s":{NS:[n]},":n":{N:n}}}));
+              return parseInt(n,10);
+            }catch(e){return 0}
+          }
+          async function reserve(id){
+            const f=await popFreed(id);
+            if(f)return f;
+            try{
+              const u=await ddb.send(new UpdateItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+                UpdateExpression:"SET tot = if_not_exists(tot,:t) ADD taken :one",
+                ConditionExpression:"attribute_not_exists(taken) OR taken < :t",
+                ExpressionAttributeValues:{":t":{N:String(TOTAL(id))},":one":{N:"1"}},
+                ReturnValues:"UPDATED_NEW"}));
+              return parseInt(u.Attributes.taken.N,10);
+            }catch(e){
+              if(e.name==="ConditionalCheckFailedException")return -1;
+              console.error("reserve",e);return -2;
+            }
+          }
+          async function release(id,i){
+            try{await ddb.send(new UpdateItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+              UpdateExpression:"ADD freed :s",ExpressionAttributeValues:{":s":{NS:[String(i)]}}}))}
+            catch(e){console.error("release",id,i,e.name)}
+          }
+          async function releaseAll(list){for(const t of list)await release(t.id,t.i)}
+          async function slots(){
+            const out={};let k;
+            do{
+              const q=await ddb.send(new ScanCommand({TableName:SLOTS,ExclusiveStartKey:k}));
+              for(const it of (q.Items||[])){
+                const id=it.artworkId.S;
+                const t=it.taken?parseInt(it.taken.N,10):0;
+                const fr=(it.freed&&it.freed.NS)?it.freed.NS.length:0;
+                out[id]={taken:Math.max(0,t-fr),total:it.tot?parseInt(it.tot.N,10):TOTAL(parseInt(id,10))};
+              }
+              k=q.LastEvaluatedKey;
+            }while(k);
+            for(let i=1;i<=23;i++)if(!out[String(i)])out[String(i)]={taken:0,total:TOTAL(i)};
+            return r(200,{artworks:out,source:"live",updated:new Date().toISOString().slice(0,10)});
+          }
+          async function order(d,ip){
+            const email=String(d.email||"").trim().toLowerCase();
+            const src=String(d.sourceId||"");
+            const a=Array.isArray(d.artworks)?d.artworks.map(v=>parseInt(v,10)):[];
+            const n=a.length,c={};
+            if(email.length>254||!RE.test(email))return r(400,{error:"bad_email"});
+            if(!(n>=1&&n<=24))return r(400,{error:"bad_pieces"});
+            for(const x of a){
+              if(!(x>=1&&x<=23))return r(400,{error:"bad_artwork"});
+              c[x]=(c[x]||0)+1;
+              if(c[x]>(x===23?2:1))return r(400,{error:"dup_artwork"});
+            }
+            if(!src)return r(400,{error:"no_source"});
+            const id=randomUUID(),amt=n*500,now=new Date().toISOString(),ls=a.join(",");
+            const held=[];
+            for(const x of a){
+              const i=await reserve(x);
+              if(i===-1){await releaseAll(held);return r(409,{error:"artwork_full",artwork:x})}
+              if(i===-2){await releaseAll(held);return r(500,{error:"reserve_failed"})}
+              held.push({id:x,i:i});
+            }
+            const ps=held.map(t=>t.id+":"+t.i).join(",");
+            let pay;
+            try{
+              const res=await fetch("https://connect.squareup.com/v2/payments",{method:"POST",
+                headers:{authorization:"Bearer "+(await tok()),"square-version":"2025-01-23","content-type":"application/json"},
+                body:JSON.stringify({source_id:src,idempotency_key:id,location_id:process.env.SQ_LOCATION,
+                  amount_money:{amount:amt,currency:"JPY"},buyer_email_address:email,
+                  note:"ONE HEART "+n+" places ["+ls+"]"})});
+              pay=await res.json();
+              if(!res.ok){
+                const m=(pay.errors&&pay.errors[0]&&(pay.errors[0].detail||pay.errors[0].code))||"declined";
+                await releaseAll(held);
+                return r(402,{error:"payment_failed",detail:m});
+              }
+            }catch(e){console.error("sq",e);await releaseAll(held);return r(502,{error:"payment_error"})}
+            try{
+              await ddb.send(new PutItemCommand({TableName:process.env.ORDERS,Item:{
+                orderId:{S:id},email:{S:email},artworks:{S:ls},pieces:{N:String(n)},
+                amount:{N:String(amt)},paymentId:{S:(pay.payment&&pay.payment.id)||""},
+                status:{S:"paid"},portrait:{S:""},positions:{S:ps},createdAt:{S:now},ip:{S:ip}}}));
+            }catch(e){console.error("ddb",e)}
+            const pl=held.map(t=>Object.assign({artwork:t.id,piece:t.i},at(t.id,t.i)));
+            const lines=pl.map(p=>P2(p.artwork)+" "+TT(p.artwork)+" piece "+p.piece+" (r"+p.row+",c"+p.col+")").join("\n");
+            await send(email,"Your places are held - ONE HEART order "+id.slice(0,8),receiptText(pl,id,n,amt),receipt(pl,id,n,amt));
+            await mail("ONE HEART - order "+id.slice(0,8)+" - "+n+" places - JPY "+amt,
+              email+"\n"+n+" places = JPY "+amt+"\n\n"+lines+"\n\norder "+id+"\npayment "+((pay.payment&&pay.payment.id)||"-")+"\n"+now+"\n"+ip);
+            return r(200,{ok:true,orderId:id,amount:amt,places:pl});
+          }
+          function gotHtml(id,list){
+            const rows=list.map(p=>'<li style="'+F+';font-size:15px;color:#111111;padding-bottom:4px">'+P2(p.a)+' '+TT(p.a)+' &middot; piece '+p.i+'</li>').join("");
+            return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;padding:0;background:#FFD900">'
+              +'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFD900"><tr><td align="center" style="padding:32px 16px 44px">'
+              +'<table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:600px;max-width:100%">'
+              +'<tr><td style="'+F+';font-size:12px;font-weight:800;letter-spacing:.26em;color:#111111;padding-bottom:12px">WE ARE ALL ONE HEART</td></tr>'
+              +'<tr><td style="border-top:2px solid #111111;padding-bottom:26px"></td></tr>'
+              +'<tr><td style="'+F+';font-size:11px;font-weight:700;letter-spacing:.2em;color:#E53935;padding-bottom:8px">RECEIVED</td></tr>'
+              +'<tr><td style="'+F+';font-size:38px;line-height:1.1;font-weight:800;color:#111111;padding-bottom:14px">Your portrait is in.</td></tr>'
+              +'<tr><td style="'+F+';font-size:16px;line-height:1.7;color:#111111;padding-bottom:26px">Nothing else is needed from you. Your photograph will be placed in the position held for you, and you will receive the finished artwork and your certificate when the artwork is rendered.</td></tr>'
+              +'<tr><td style="'+PANEL+'">'
+              +'<div style="'+F+';'+LBL+';padding-bottom:12px">YOUR PLACES</div>'
+              +'<ul style="margin:0;padding-left:18px">'+rows+'</ul>'
+              +'<div style="border-top:1px solid #111111;margin:14px 0 12px"></div>'
+              +'<div style="'+F+';'+LBL+'">ORDER</div>'
+              +'<div style="'+F+';font-size:14px;font-weight:700;color:#111111">'+id+'</div>'
+              +'</td></tr><tr><td height="26" style="height:26px"></td></tr>'
+              +'<tr><td style="'+F+';font-size:15px;line-height:1.7;color:#111111;padding-bottom:26px">If you sent the wrong photograph, send another one the same way and it replaces this one. Places close on 30 June 2027.</td></tr>'
+              +'<tr><td style="border-top:1px solid #111111;padding-top:18px;'+F+';font-size:12px;line-height:1.8;color:#3a3527">'
+              +'TAmJ Inc., Tokyo &middot; <a href="mailto:'+process.env.NOTIFY_TO+'" style="color:#3a3527">'+process.env.NOTIFY_TO+'</a>'
+              +'</td></tr></table></td></tr></table></body></html>';
+          }
+          async function portrait(d,ip){
+            const id=String(d.orderId||"").trim();
+            const email=String(d.email||"").trim().toLowerCase();
+            if(!id||id.length>64||!RE.test(email))return r(400,{error:"bad_request"});
+            const m=/^data:image\/(jpeg|png);base64,([A-Za-z0-9+/=]+)$/.exec(String(d.image||""));
+            if(!m)return r(400,{error:"bad_image"});
+            const buf=Buffer.from(m[2],"base64");
+            if(buf.length<8000)return r(400,{error:"bad_image"});
+            if(buf.length>4200000)return r(413,{error:"too_large"});
+            let it;
+            try{it=await ddb.send(new GetItemCommand({TableName:process.env.ORDERS,Key:{orderId:{S:id}}}))}
+            catch(e){console.error("ddb",e);return r(500,{error:"lookup_failed"})}
+            if(!it.Item)return r(404,{error:"no_order"});
+            if(((it.Item.email&&it.Item.email.S)||"")!==email)return r(403,{error:"email_mismatch"});
+            const ext=m[1]==="png"?"png":"jpg";
+            const key="portraits/"+id+"."+ext;
+            try{await s3.send(new PutObjectCommand({Bucket:process.env.BUCKET,Key:key,Body:buf,ContentType:"image/"+m[1]}))}
+            catch(e){console.error("s3",e);return r(500,{error:"store_failed"})}
+            const now=new Date().toISOString();
+            try{await ddb.send(new UpdateItemCommand({TableName:process.env.ORDERS,Key:{orderId:{S:id}},
+              UpdateExpression:"SET portrait = :k, portraitAt = :t",
+              ExpressionAttributeValues:{":k":{S:key},":t":{S:now}}}))}catch(e){console.error("ddb",e)}
+            const ps=((it.Item.positions&&it.Item.positions.S)||"").split(",").filter(Boolean)
+              .map(x=>({a:parseInt(x.split(":")[0],10),i:parseInt(x.split(":")[1],10)}));
+            const lines=ps.map(p=>P2(p.a)+" "+TT(p.a)+" piece "+p.i).join("\n");
+            await send(email,"Your portrait is in - ONE HEART order "+id.slice(0,8),
+              "WE ARE ALL ONE HEART\n\nYour portrait is in.\n\nNothing else is needed from you. Your photograph will be placed in the position held for you.\n\nYOUR PLACES\n"+lines+"\n\nOrder: "+id+"\n\nIf you sent the wrong photograph, send another one the same way and it replaces this one. Places close on 30 June 2027.\n\n"+SITE+"\nTAmJ Inc., Tokyo - "+process.env.NOTIFY_TO+"\n",
+              gotHtml(id,ps));
+            await mail("ONE HEART - portrait "+id.slice(0,8),
+              email+"\n"+key+"\n"+Math.round(buf.length/1024)+" KB\n"+lines+"\n"+now+"\n"+ip);
+            return r(200,{ok:true});
+          }
+          exports.handler=async(e)=>{
+            const p=(e.rawPath||"").replace(/\/+$/,"")||"/";
+            const hx=(e.requestContext&&e.requestContext.http)||{};
+            const ip=hx.sourceIp||"";
+            if(p==="/slots"&&hx.method==="GET")return slots();
+            let d={};try{d=JSON.parse(e.body||"{}")}catch(x){return r(400,{error:"bad_json"})}
+            if(p==="/notify")return notify(d,ip);
+            if(p==="/order")return order(d,ip);
+            if(p==="/portrait")return portrait(d,ip);
+            return r(404,{error:"not_found"});
+          };
+
+  Api:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: oneheart-api
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins: [!Ref SiteOrigin]
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [content-type]
+        MaxAge: 3000
+
+  Integration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref Api
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt Fn.Arn
+      PayloadFormatVersion: '2.0'
+
+  RouteNotify:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /notify'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteOrder:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /order'
+      Target: !Sub 'integrations/${Integration}'
+
+  RoutePortrait:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /portrait'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteSlots:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'GET /slots'
+      Target: !Sub 'integrations/${Integration}'
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref Api
+      StageName: $default
+      AutoDeploy: true
+
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Fn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*/*'
+
+Outputs:
+  NotifyEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/notify'
+  OrderEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/order'
+  SlotsEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/slots'
+  SlotsTableName:
+    Value: !Ref SlotsTable
+  OrdersTableName:
+    Value: !Ref OrdersTable
+  PortraitsBucketName:
+    Value: !Ref PortraitsBucket

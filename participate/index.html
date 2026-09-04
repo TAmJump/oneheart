@@ -122,6 +122,9 @@
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .fineprint{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.7}
   .msg{display:none;border:3px solid var(--coral);background:#fff;padding:16px 18px;margin-top:20px;font-size:14px;font-weight:600}
+  .msg.ok{border-color:var(--ink)}
+  .up input[type=file]{font:inherit;font-size:14px;max-width:100%}
+  .up .prev img{display:block;width:180px;height:auto;border:3px solid var(--ink);margin-top:18px}
 
   #done{display:none}
   .receipt{display:grid;grid-template-columns:auto 1fr;gap:8px 22px;font-size:14px;margin:22px 0 0;border-top:2px solid var(--ink);padding-top:20px}
@@ -238,8 +241,14 @@
 
     <div class="panel" style="margin-top:30px">
       <h3>Send one portrait</h3>
-      <p>Email your photograph to <a href="mailto:info@tamjump.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">info@tamjump.com</a> with the order number below in the subject line. One clear photograph of a face, JPEG or PNG, at least 800×800 pixels. The same photograph is used for every artwork you have joined unless you tell us otherwise.</p>
-      <p>Upload directly on this page will replace email later. If you have already sent a photograph, nothing else is needed from you.</p>
+      <p>One clear photograph of a face, JPEG or PNG, at least 800×800 pixels. It is resized in your browser before it is sent. The same photograph is used for every artwork you have joined unless you tell us otherwise.</p>
+      <div class="up">
+        <input type="file" id="up-file" accept="image/jpeg,image/png">
+        <div class="prev" id="up-prev"></div>
+        <button class="btn" type="button" id="up-send" style="margin-top:18px" disabled>Send this photograph</button>
+        <div class="msg" id="up-msg"></div>
+      </div>
+      <p class="fineprint">You can also send it later from <a href="/portrait/" style="text-decoration:underline">oneheart.tamjump.com/portrait</a> with the order number below, or email it to <a href="mailto:info@tamjump.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">info@tamjump.com</a>.</p>
       <dl class="receipt">
         <dt>Order</dt><dd id="r-order">—</dd>
         <dt>Artworks</dt><dd id="r-art">—</dd>
@@ -271,9 +280,11 @@
 </footer>
 
 <script src="https://web.squarecdn.com/v1/square.js"></script>
+<script src="/js/upload.js"></script>
 <script>
 var ORDER_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/order";
 var SLOTS_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/slots";
+var PORTRAIT_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/portrait";
 var SQ_APP_ID      = "sq0idp-DDvfI0E05acVUIYXHZimkQ";
 var SQ_LOCATION_ID = "LH3WP4241WJEV";
 var PRICE          = 500;
@@ -553,6 +564,13 @@ function show(d){
                " (row " + p.row + ", column " + p.col + ")";
       }).join(" · ")
     : "—";
+  var who = { orderId: d.orderId, email: $("email").value.trim().toLowerCase() };
+  portraitUpload({
+    endpoint: PORTRAIT_ENDPOINT,
+    ids: { file: "up-file", prev: "up-prev", send: "up-send", msg: "up-msg" },
+    order: function(){ return who; }
+  });
+
   $("done").style.display   = "block";
   $("done").scrollIntoView({ behavior: "smooth", block: "start" });
 }
