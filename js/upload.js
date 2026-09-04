@@ -13,12 +13,28 @@
   var SHOT_H = 1600;
   var QUALITY = 0.88;
 
-  var GUIDE =
-    '<svg viewBox="0 0 300 400" preserveAspectRatio="none" aria-hidden="true">' +
-    '<ellipse cx="150" cy="168" rx="70" ry="92" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-dasharray="7 6"/>' +
-    '<path d="M60 400 C 60 320, 105 286, 150 286 C 195 286, 240 320, 240 400" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/>' +
-    '<line x1="150" y1="52" x2="150" y2="70" stroke="rgba(255,255,255,.55)" stroke-width="2"/>' +
-    '</svg>';
+  /* ID-photo guide. mode "live" darkens everything outside the head area,
+     mode "check" is outline only, laid over the shot that was taken. */
+  function guide(mode) {
+    var live = mode === "live";
+    return '<svg class="guide" viewBox="0 0 300 400" aria-hidden="true">' +
+      '<defs>' +
+        '<filter id="ohb"><feGaussianBlur stdDeviation="9"/></filter>' +
+        '<mask id="ohm">' +
+          '<rect width="300" height="400" fill="#fff"/>' +
+          '<ellipse cx="150" cy="170" rx="78" ry="101" fill="#000" filter="url(#ohb)"/>' +
+        '</mask>' +
+      '</defs>' +
+      (live ? '<rect width="300" height="400" fill="rgba(0,0,0,.58)" mask="url(#ohm)"/>' : '') +
+      '<ellipse cx="150" cy="170" rx="70" ry="92" fill="none" stroke="#FFD900" stroke-width="1.6" stroke-dasharray="8 7" opacity="' + (live ? '.95' : '.9') + '"/>' +
+      '<path d="M56 400 C 56 322, 103 288, 150 288 C 197 288, 244 322, 244 400" fill="none" stroke="#FFD900" stroke-width="1.4" opacity="' + (live ? '.5' : '.45') + '"/>' +
+      '<line x1="150" y1="46" x2="150" y2="62" stroke="#E53935" stroke-width="2.4"/>' +
+      '<path d="M14 44 L14 14 L44 14" fill="none" stroke="#FFD900" stroke-width="3"/>' +
+      '<path d="M256 14 L286 14 L286 44" fill="none" stroke="#FFD900" stroke-width="3"/>' +
+      '<path d="M286 356 L286 386 L256 386" fill="none" stroke="#FFD900" stroke-width="3"/>' +
+      '<path d="M44 386 L14 386 L14 356" fill="none" stroke="#FFD900" stroke-width="3"/>' +
+      '</svg>';
+  }
 
   function el(id) { return d.getElementById(id); }
 
@@ -91,8 +107,9 @@
     function preview(src, again) {
       stop();
       stage.innerHTML =
-        '<div class="shot"><img src="' + src + '" alt=""></div>' +
-        (again ? '<button class="btn alt" type="button" id="' + ids.stage + '-retake">Take another</button>' : "");
+        '<div class="shot">' + '<img src="' + src + '" alt="">' + (again ? guide("check") : "") + '</div>' +
+        (again ? '<p class="cap">Is your face inside the outline, with your shoulders in the frame? If not, take another.</p>' +
+                 '<button class="btn alt" type="button" id="' + ids.stage + '-retake">Take another</button>' : "");
       data = src;
       ready(true);
       if (again) {
@@ -109,7 +126,7 @@
       }
       clear();
       stage.innerHTML =
-        '<div class="frame"><video playsinline autoplay muted></video>' + GUIDE + '</div>' +
+        '<div class="frame"><video playsinline autoplay muted></video>' + guide("live") + '</div>' +
         '<p class="cap">Fit your face inside the outline. Head and shoulders, looking at the camera, in even light.</p>' +
         '<button class="btn" type="button" id="' + ids.stage + '-shot">Take the photo</button>';
       video = stage.querySelector("video");
