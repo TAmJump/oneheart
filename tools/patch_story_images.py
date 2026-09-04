@@ -110,6 +110,13 @@ JOBS = {
              ref_w=1390,
              new=[("Reaching ¥1,250,000 starts the project. All 23 artworks are then produced and delivered as they stand on 30 June 2027, at whatever level of participation each one has reached.", False)]),
     ],
+    "13_USE_OF_FUNDS.png": [
+        dict(clear=(85, 200, 1210, 245), bg=DARK, x=89, y=209, lh=36,
+             max_w=1015, colour=GREY,
+             ref_text="The budget for completing the first artwork and running the system behind it.",
+             ref_w=875,
+             new=[("The budget for the first year of the project and the system behind it.", False)]),
+    ],
     "14_SCHEDULE.png": [
         dict(clear=(85, 200, 1210, 272), bg=DARK, x=89, y=209, lh=36,
              max_w=1065, colour=GREY,
