@@ -57,8 +57,15 @@
   .btn:hover:not(:disabled){background:var(--coral);border-color:var(--coral);color:#fff}
   .btn:disabled{opacity:.45;cursor:not-allowed}
 
-  .up input[type=file]{font:inherit;font-size:14px;max-width:100%}
-  .up .prev img{display:block;width:180px;height:auto;border:3px solid var(--ink);margin-top:18px}
+  .up .uprow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:20px}
+  .up .btn.alt{background:#fff;color:var(--ink)}
+  .up .btn.alt:hover{background:var(--coral);border-color:var(--coral);color:#fff}
+  .up .stage{max-width:300px}
+  .up .frame{position:relative;width:100%;padding-top:133.33%;background:#111;overflow:hidden;border:3px solid var(--ink);margin-top:20px}
+  .up .frame video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  .up .frame svg{position:absolute;top:0;left:0;width:100%;height:100%}
+  .up .cap{font-size:12px;line-height:1.6;color:var(--dim);margin:10px 0 14px}
+  .up .shot img{display:block;width:100%;height:auto;border:3px solid var(--ink);margin:20px 0 14px}
   .msg{display:none;border:3px solid var(--coral);background:#fff;padding:16px 18px;margin-top:20px;font-size:14px;font-weight:600}
   .msg.ok{border-color:var(--ink)}
   .fineprint{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.7}
@@ -93,7 +100,7 @@
   <div class="wrap">
     <div class="panel">
       <h3>Send one portrait</h3>
-      <p>One clear photograph of a face, JPEG or PNG, at least 800×800 pixels. It is resized in your browser before it is sent. Sending another photograph later replaces this one.</p>
+      <p>Take it here with your camera, in the shape of an ID photograph, or choose a file you already have. Sending another photograph later replaces this one.</p>
 
       <label class="lbl" for="oid">Order number</label>
       <input type="text" id="oid" autocomplete="off" spellcheck="false" placeholder="From your confirmation email">
@@ -101,10 +108,14 @@
       <label class="lbl" for="mail">Email address</label>
       <input type="email" id="mail" autocomplete="email" placeholder="The address you paid with">
 
-      <div class="up" style="margin-top:26px">
-        <input type="file" id="up-file" accept="image/jpeg,image/png">
-        <div class="prev" id="up-prev"></div>
-        <button class="btn" type="button" id="up-send" style="margin-top:18px" disabled>Send this photograph</button>
+      <div class="up">
+        <div class="uprow">
+          <button class="btn" type="button" id="up-cam">Take a photo</button>
+          <label class="btn alt" for="up-file">Choose a file</label>
+          <input type="file" id="up-file" accept="image/jpeg,image/png" hidden>
+        </div>
+        <div class="stage" id="up-stage"></div>
+        <button class="btn" type="button" id="up-send" style="margin-top:6px" disabled>Send this photograph</button>
         <div class="msg" id="up-msg"></div>
       </div>
 
@@ -153,7 +164,7 @@ function say(t){
 
 portraitUpload({
   endpoint: PORTRAIT_ENDPOINT,
-  ids: { file: "up-file", prev: "up-prev", send: "up-send", msg: "up-msg" },
+  ids: { cam: "up-cam", file: "up-file", stage: "up-stage", send: "up-send", msg: "up-msg" },
   order: function(){
     var id = $("oid").value.trim();
     var mail = $("mail").value.trim().toLowerCase();
