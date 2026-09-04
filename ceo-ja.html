@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>きみが社長だ。— ONE HEART PROJECT</title>
+<meta name="description" content="22体のキャラクターは、病気とともに生きる子どもたちの発想から生まれました。助けられるだけの存在ではなく、自分の価値で未来を選ぶ創り手として。">
+<meta property="og:title" content="きみが社長だ。— ONE HEART PROJECT">
+<meta property="og:description" content="子どもの発想が作品になる。作品が価値になる。その価値が、その子の未来になる。">
+<meta property="og:image" content="https://oneheart.tamjump.com/images/23grid.jpg">
+<meta property="og:locale" content="ja_JP">
+<link rel="alternate" hreflang="en" href="https://oneheart.tamjump.com/ceo.html">
+<link rel="alternate" hreflang="ja" href="https://oneheart.tamjump.com/ceo-ja.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFD900;--panel:#FFFFFF;--text:#111111;--muted:#4d4d4d;--red:#E53935;--line:#111111}
+*{box-sizing:border-box} html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;line-height:1.9}
+.topnav{background:var(--bg);border-bottom:3px solid #111;padding:16px 7vw;font-weight:900;letter-spacing:.06em;font-size:14px}
+.topnav .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.topnav a{color:#111;text-decoration:none}
+.topnav a:hover{color:var(--red)}
+.lang{border:2px solid #111;border-radius:999px;padding:5px 14px;font-size:13px;white-space:nowrap}
+.lang:hover{background:#111;color:var(--bg)}
+.hero{min-height:88vh;display:flex;align-items:center;padding:72px 7vw;background:
+linear-gradient(135deg,#FFD900 0%,#FFE84D 58%,#FFD900 100%);
+position:relative;overflow:hidden}
+.hero::after{content:"CEO";position:absolute;right:-2vw;bottom:-8vw;font-size:28vw;font-weight:900;line-height:1;color:rgba(17,17,17,.055);letter-spacing:-.08em;pointer-events:none}
+.wrap{max-width:1120px;margin:auto}.kicker{color:#111;letter-spacing:.12em;font-weight:900;font-size:14px}
+h1{font-size:clamp(40px,6.6vw,86px);line-height:1.12;margin:.24em 0;letter-spacing:-.01em}.red{color:var(--red)}
+.lead{font-size:clamp(20px,2.3vw,30px);font-weight:900;max-width:920px;line-height:1.55}
+.sub{color:#252525;font-size:17px;max-width:900px;font-weight:500}
+section.block{padding:86px 7vw;border-top:3px solid #111;background:var(--bg)}
+h2{font-size:clamp(28px,4.2vw,52px);line-height:1.28;margin:0 0 24px;letter-spacing:-.01em} h3{font-size:22px;margin:0 0 10px}
+.badge{display:inline-block;padding:7px 13px;border-radius:999px;background:#111;color:var(--bg);font-weight:900;font-size:13px;margin-bottom:12px;letter-spacing:.04em}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.card{background:#fff;border:3px solid #111;border-radius:22px;padding:28px;box-shadow:8px 8px 0 #111}
+.big{font-size:44px;font-weight:900;color:#111;line-height:1.1}
+.quote{font-size:clamp(22px,3vw,38px);font-weight:900;line-height:1.45;line-break:strict;border-left:8px solid var(--red);padding-left:26px}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.step{background:#fff;border:3px solid #111;padding:24px 16px;border-radius:18px;text-align:center;font-weight:700;box-shadow:6px 6px 0 #111;font-size:15px;line-height:1.5}
+.step small{font-weight:500;color:#3b3b3b}
+.note{margin-top:28px;padding:18px 20px;border:3px dashed #111;border-radius:14px;color:#222;background:#FFF7B5;font-weight:500;font-size:15px}
+.final{text-align:center;padding:110px 7vw 130px;background:var(--bg);border-top:6px solid #111;position:relative;overflow:hidden}
+.final::before{content:"LIVE.";position:absolute;left:-2vw;top:6vw;font-size:24vw;font-weight:900;line-height:.8;color:rgba(17,17,17,.055);letter-spacing:-.08em;pointer-events:none}
+.final h2{font-size:clamp(34px,6vw,74px)} ul{padding-left:1.2em} li{margin:.4em 0}
+.cta{display:inline-block;margin-top:34px;padding:18px 38px;background:#111;color:var(--bg);border-radius:999px;font-weight:900;font-size:16px;letter-spacing:.04em;text-decoration:none}
+.cta:hover{background:var(--red);color:#fff}
+.ohfoot{background:#111;color:#efe4a6;padding:52px 7vw 64px;font-size:14px;line-height:1.9}
+.ohfoot a{color:var(--bg);text-decoration:none}
+.ohfoot .brand{color:var(--bg);font-weight:900;font-size:18px;letter-spacing:.04em;margin-bottom:6px}
+.ohfoot .fnav{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;font-weight:700}
+@media(max-width:900px){.grid,.two,.flow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topnav"><div class="wrap">
+  <a href="/">&larr; ONE HEART PROJECT</a>
+  <a class="lang" href="/ceo.html">English</a>
+</div></div>
+
+<section class="hero">
+<div class="wrap">
+<div class="kicker">ONE HEART ／ 子ども × キャラクター × ビジネス</div>
+<h1>きみが社長だ。<br><span class="red">今日から、きみが動かす。</span></h1>
+<div class="lead">助けてもらうだけの人じゃない。<br>価値をつくって、未来を選ぶ。</div>
+<p class="sub">2024年から2025年にかけて出会った、病気とともに生きる子どもたち。キャラクターは、その子たちの発想から始まりました。わたしがそれを絵にして、22点の作品になっています。このプロジェクトでは、発想した子どもを「助けられる側」には置きません。創り手として、そして責任者として扱います。</p>
+</div>
+</section>
+
+<section class="block"><div class="wrap">
+<span class="badge">01 ／ なぜこの仕組みなのか</span>
+<h2>「わたしのために、そんなに<br>がんばらなくていいよ。」</h2>
+<div class="two">
+<div>
+<p>病気とともに生きる子どもは、家族の努力と、医療者のケアと、まわりに用意された制度に支えられています。そのなかには、大人がどれだけのものを手放しているかを正確に理解していて、自分のためにそこまで無理をしてほしくないと、静かに願っている子がいます。</p>
+<p class="quote">だったら、きみがつくった価値で<br>選べる未来をつくろう。</p>
+</div>
+<div class="card"><h3>ONE HEART が変えたいこと</h3>
+<ul><li>誰かを「受け取る側」に固定しない。</li><li>子どもの発想を、作品・商品・知的財産に変える。</li><li>その子がつくった価値が、その子自身の未来に届く道をつくる。</li><li>その仕組みを、世界に持っていく。</li></ul>
+</div></div></div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">02 ／ 子どもたちへの約束</span>
+<h2>きみのキャラクター。きみの会社。<br><span class="red">発想はきみのものだから、動かすのもきみだ。</span></h2>
+<div class="grid">
+<div class="card"><div class="big">YOU</div><h3>社長／創り手</h3><p>キャラクターを思いついた人が、この物語の中心に立ちます。</p></div>
+<div class="card"><div class="big">2,500</div><h3>共同創り手</h3><p>1作品に集まる2,500人が、そのキャラクターを一緒に育てます。</p></div>
+<div class="card"><div class="big">1</div><h3>キャラクタービジネス</h3><p>アートとして始まり、商品・コンテンツ・コラボへと広がっていきます。</p></div>
+</div></div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">03 ／ 最初のビジネス</span>
+<h2>最初の商品は、<span class="red">アート。</span></h2>
+<div class="flow">
+<div class="step">1<br><small>キャラクターを選ぶ</small></div><div class="step">2<br><small>2,500人が参加する</small></div><div class="step">3<br><small>顔写真が1ピースになる</small></div><div class="step">4<br><small>モザイクが完成する</small></div><div class="step">5<br><small>キャラクターに価値が生まれる</small></div>
+</div>
+<p style="margin-top:30px;color:#3b3b3b">Kickstarter では1枠 ¥500 です。ひとつの作品に2,500人が集まると、その作品は ¥1,250,000 ぶんの参加を背負うことになります。そこから、キャラクターを知的財産として、グッズ・ライセンス・コラボへ広げていきます。</p>
+</div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">04 ／ なぜ稼ぐのか</span>
+<h2>価値をつくる。<br><span class="red">人生を選ぶ。</span></h2>
+<div class="grid">
+<div class="card"><h3>治療</h3><p>自分のキャラクターが生んだ利益で、受けたい治療やケアの費用をまかなえる未来を目指します。</p></div>
+<div class="card"><h3>環境</h3><p>治療だけではありません。安心できる場所、教育、住まい、旅に出られること。</p></div>
+<div class="card"><h3>暮らし</h3><p>好きな服を着る。好きなものを食べる。旅行に行く。家族といい時間を過ごす。</p></div>
+</div>
+<p class="quote" style="margin-top:42px">生きのびるためのお金じゃない。<br>生きたい人生を生きるための価値をつくる。</p>
+</div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">05 ／ 家族のために</span>
+<h2>今度は、きみが家族を笑わせる番だ。</h2>
+<div class="two"><div>
+<p>利益の使い道は治療だけではありません。ここまで支えてくれた家族へのプレゼントにもなります。一緒に旅行に行くことにも、ずっと行ってみたかった店で食事をすることにも使えます。</p>
+<p class="quote">「今日は、<br>わたしがおごる。」</p>
+</div>
+<div class="card"><h3>支援から循環へ</h3><p>片方が与えて片方が受け取るのではなく、子どもが価値をつくり、その価値がその子と家族に返り、残ったものが次の子どもの扉を開ける。ONE HEART は、その円をつくるためにあります。</p></div>
+</div></div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">06 ／ 22 からはじめる</span>
+<h2>22体のキャラクター。<br><span class="red">22人の社長。</span></h2>
+<p>ONE HEART の22体は、2024年から2025年にかけて出会った、病気とともに生きる子どもたちの発想から生まれています。23番目の作品「ONE HEART」は、その22の物語と、世界中の参加者をつなぐ最後の1点です。</p>
+<div class="grid" style="margin-top:26px">
+<div class="card"><div class="big">22</div><p>子どもの発想から生まれたキャラクター</p></div>
+<div class="card"><div class="big">23</div><p>すべてが出会う ONE HEART</p></div>
+<div class="card"><div class="big">WORLD</div><p>日本の外へ持っていくための仕組み</p></div>
+</div></div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">07 ／ 世界の標準へ</span>
+<h2>これを<span class="red">世界の標準に。</span></h2>
+<p class="lead" style="font-size:24px">病気とともに生きる子どもが、支援を待つだけの存在でいる必要はありません。その想像力は資産になり、資産は選択肢になります。</p>
+<div class="flow" style="margin-top:34px">
+<div class="step">CHILD<br><small>発想</small></div><div class="step">CHARACTER<br><small>キャラクターになる</small></div><div class="step">IP／PRODUCT<br><small>商品化・ライセンス</small></div><div class="step">PROFIT<br><small>価値が収益になる</small></div><div class="step">CHOICE<br><small>治療・暮らし・未来</small></div>
+</div>
+<div class="note">この仕組みを他国へ持っていくには、未成年の権利保護、保護者の同意、著作権と商標、収益の配分、税務、医療費への充当ルールを、国ごとに法制度と実務の両面で設計する必要があります。世界の標準にすることは、これから目指す目標です。すでにそうした仕組みがあるという意味ではありません。</div>
+</div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">08 ／ ぜんぶやろう</span>
+<h2>生きのびるため以上に、稼ごう。</h2>
+<div class="two">
+  <div>
+    <p class="lead" style="font-size:26px">
+      家族に夢の家を買う。<br>家族を旅行に連れていく。<br>好きな服を着る。<br>好きなものを食べる。<br>ずっと行きたかった場所へ行く。
+    </p>
+  </div>
+  <div class="card">
+    <h3>今までできなかったことを、やる。</h3>
+    <p>
+      治療だけが人生ではありません。<br>
+      家族と笑うこと、遊ぶこと、難しいことに挑戦すること、<br>
+      好きなものを選ぶこと。それも全部、人生です。
+    </p>
+    <p style="font-size:22px;font-weight:900;color:#111;margin-top:22px">
+      きみがつくった価値で、<br>自分と家族の人生を広げよう。
+    </p>
+  </div>
+</div>
+</div></section>
+
+<section class="block"><div class="wrap">
+<span class="badge">09 ／ きみは弱くない</span>
+<h2>きみは<span class="red">弱くない。</span></h2>
+<p class="quote">
+  痛みに向き合って、それでも進んできたなら、<br>多くのリーダーが一生知らない強さを、<br>きみはもう知っている。
+</p>
+<p style="font-size:19px;color:#3b3b3b;max-width:900px">
+  きみは痛みを知っている。こわさを知っている。やめてしまうほうが楽だという瞬間も知っている。
+  それでも、まだここにいる。そこで身につけたものは、誰にも真似できません。
+  ONE HEART は、それを同情としてしまい込みません。
+  想像力に変え、仕事に変え、価値に変え、未来に変えます。
+</p>
+</div></section>
+
+<section class="final"><div class="wrap">
+<div class="kicker">ONE HEART VISION</div>
+<h2>生きよう。<span class="red">思いきり生きよう。</span></h2>
+<p style="font-size:clamp(20px,2.6vw,34px);font-weight:900;line-height:1.6">
+  きみは助けられるだけの人じゃない。<br>きみの頭のなかにあるものには、価値がある。<br>その価値で、自分の未来をつくろう。<br>そして、家族の未来も変えよう。
+</p>
+<p style="font-size:26px;font-weight:900;color:#111">きみのキャラクター。<br>きみのビジネス。<br>きみの未来。</p>
+<p style="font-size:40px;font-weight:900;color:var(--red)">きみが社長だ。</p>
+<a class="cta" href="https://www.kickstarter.com/projects/tamj/we-are-all-one-heart-23-pieces-one-world?ref=4k7z69">Kickstarter で参加する</a>
+</div></section>
+
+<footer class="ohfoot"><div class="wrap">
+<div class="brand">ONE HEART PROJECT</div>
+運営：タムジ株式会社（東京）<br>
+<a href="mailto:info@tamjump.com">info@tamjump.com</a>
+<div class="fnav">
+  <a href="/">プロジェクトトップ</a>
+  <a href="/terms.html">参加規約</a>
+  <a href="/verify/">証明書の確認</a>
+  <a href="/ceo.html">English</a>
+  <a href="https://www.kickstarter.com/projects/tamj/we-are-all-one-heart-23-pieces-one-world?ref=4k7z69">Kickstarter</a>
+</div>
+</div></footer>
+
+</body></html>
