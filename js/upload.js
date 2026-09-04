@@ -4,6 +4,9 @@
 (function (w, d) {
   "use strict";
 
+  var NAME_MAX = 24;      /* characters allowed on the reverse side */
+  var NAME_OK = /^[\p{L}\p{M}\p{N} .,'\u2019\-&\u00B7]+$/u;
+
   var MIN = 800;          /* shortest side a chosen file must have */
   var MAX = 1600;         /* longest side we keep from a file */
   var SHOT_W = 1200;      /* captured photo, 3:4 like an ID photo */
@@ -58,6 +61,8 @@
     var ids = cfg.ids;
     var file = el(ids.file), stage = el(ids.stage), send = el(ids.send), msg = el(ids.msg);
     var cam = ids.cam ? el(ids.cam) : null;
+    var nameBox = ids.name ? el(ids.name) : null;
+    var count = ids.count ? el(ids.count) : null;
     var data = null, busy = false, done = false, stream = null, video = null;
 
     function say(text, ok) {
@@ -137,6 +142,20 @@
       });
     }
 
+    function niceName() {
+      return nameBox ? nameBox.value.trim().replace(/\s+/g, " ") : "";
+    }
+
+    if (nameBox && count) {
+      var tick = function () {
+        var n = Array.from(niceName()).length;
+        count.textContent = n + " / " + NAME_MAX;
+        count.className = "count" + (n > NAME_MAX ? " over" : "");
+      };
+      nameBox.addEventListener("input", tick);
+      tick();
+    }
+
     if (cam) { cam.addEventListener("click", openCamera); }
 
     file.addEventListener("change", function () {
@@ -159,6 +178,12 @@
       if (busy || done || !data) { return; }
       var who = cfg.order();
       if (!who) { return; }
+      var nm = niceName();
+      if (nameBox) {
+        if (!nm) { say("Type the name or initials that go on the reverse of your piece."); nameBox.focus(); return; }
+        if (Array.from(nm).length > NAME_MAX) { say("That name is longer than " + NAME_MAX + " characters. Shorten it, or use initials."); nameBox.focus(); return; }
+        if (!NAME_OK.test(nm)) { say("Letters, numbers, spaces and . , ' - & only. Emoji cannot be engraved on the reverse."); nameBox.focus(); return; }
+      }
       busy = true;
       send.disabled = true;
       send.textContent = "Sending";
@@ -166,7 +191,7 @@
       fetch(cfg.endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ orderId: who.orderId, email: who.email, image: data })
+        body: JSON.stringify({ orderId: who.orderId, email: who.email, image: data, name: nm })
       }).then(function (r) {
         return r.json().then(function (j) { return { ok: r.ok, j: j }; });
       }).then(function (out) {
@@ -176,12 +201,15 @@
           if (e === "email_mismatch") { throw new Error("That email address does not match the one on this order."); }
           if (e === "too_large") { throw new Error("That photograph is too large even after resizing. Try another one."); }
           if (e === "bad_image") { throw new Error("That file could not be read as a photograph."); }
+          if (e === "name_long") { throw new Error("That name is longer than " + NAME_MAX + " characters."); }
+          if (e === "name_chars") { throw new Error("That name uses characters we cannot put on the reverse. Letters, numbers, spaces and . , ' - & only."); }
           throw new Error("The photograph was not received. Please try again, or email it to info@tamjump.com.");
         }
         done = true;
         stop();
         send.textContent = "Sent";
         if (cam) { cam.disabled = true; }
+        if (nameBox) { nameBox.disabled = true; }
         say("Your portrait is in. A confirmation is on its way to you, and nothing else is needed.", true);
       }).catch(function (err) {
         busy = false;

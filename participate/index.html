@@ -132,6 +132,11 @@
   .up .frame svg{position:absolute;top:0;left:0;width:100%;height:100%}
   .up .cap{font-size:12px;line-height:1.6;color:var(--dim);margin:10px 0 14px}
   .up .shot img{display:block;width:100%;height:auto;border:3px solid var(--ink);margin:20px 0 14px}
+  .up .namebox{margin-top:22px}
+  .up .namebox input{width:100%;max-width:420px;padding:14px 16px;font:inherit;font-size:16px;border:3px solid var(--ink);background:#fff;color:var(--ink);border-radius:0;-webkit-appearance:none;appearance:none}
+  .up .namebox input:focus{outline:3px solid var(--coral);outline-offset:2px}
+  .up .count{display:block;font-size:12px;color:var(--dim);margin-top:8px;font-weight:700;letter-spacing:.08em}
+  .up .count.over{color:var(--coral)}
 
   #done{display:none}
   .receipt{display:grid;grid-template-columns:auto 1fr;gap:8px 22px;font-size:14px;margin:22px 0 0;border-top:2px solid var(--ink);padding-top:20px}
@@ -256,6 +261,12 @@
           <input type="file" id="up-file" accept="image/jpeg,image/png" hidden>
         </div>
         <div class="stage" id="up-stage"></div>
+        <div class="namebox">
+          <label class="lbl" for="up-name">Name on the reverse</label>
+          <input type="text" id="up-name" maxlength="40" autocomplete="name" spellcheck="false" placeholder="Your name, or initials">
+          <span class="count" id="up-count"></span>
+          <p class="cap">The front of your piece carries your face; the back carries this. Up to 24 characters, in any language. Letters, numbers, spaces and . , &#39; - &amp; only.</p>
+        </div>
         <button class="btn" type="button" id="up-send" style="margin-top:6px" disabled>Send this photograph</button>
         <div class="msg" id="up-msg"></div>
       </div>
@@ -578,7 +589,7 @@ function show(d){
   var who = { orderId: d.orderId, email: $("email").value.trim().toLowerCase() };
   portraitUpload({
     endpoint: PORTRAIT_ENDPOINT,
-    ids: { cam: "up-cam", file: "up-file", stage: "up-stage", send: "up-send", msg: "up-msg" },
+    ids: { cam: "up-cam", file: "up-file", stage: "up-stage", send: "up-send", msg: "up-msg", name: "up-name", count: "up-count" },
     order: function(){ return who; }
   });
 
