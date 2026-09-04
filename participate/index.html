@@ -245,6 +245,7 @@
         <dt>Artworks</dt><dd id="r-art">—</dd>
         <dt>Places</dt><dd id="r-pieces">—</dd>
         <dt>Paid</dt><dd id="r-amount">—</dd>
+        <dt>Your places</dt><dd id="r-pos">—</dd>
       </dl>
     </div>
 
@@ -272,6 +273,7 @@
 <script src="https://web.squarecdn.com/v1/square.js"></script>
 <script>
 var ORDER_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/order";
+var SLOTS_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/slots";
 var SQ_APP_ID      = "sq0idp-DDvfI0E05acVUIYXHZimkQ";
 var SQ_LOCATION_ID = "LH3WP4241WJEV";
 var PRICE          = 500;
@@ -423,10 +425,19 @@ function clearMsg(){ $("msg").style.display = "none"; }
 
 /* ---- progress bars ---- */
 (function(){
-  fetch("/data/progress.json?v=" + Date.now()).then(function(r){
-    if (!r.ok) throw new Error("no data");
-    return r.json();
-  }).then(function(d){
+  function live(){
+    return fetch(SLOTS_ENDPOINT, { cache: "no-store" }).then(function(r){
+      if (!r.ok) throw new Error("no live data");
+      return r.json();
+    });
+  }
+  function daily(){
+    return fetch("/data/progress.json?v=" + Date.now()).then(function(r){
+      if (!r.ok) throw new Error("no data");
+      return r.json();
+    });
+  }
+  live().catch(daily).then(function(d){
     var n = 0;
     ARTWORKS.forEach(function(a){
       var meta = document.querySelector("#c" + a.n + " .meta");
@@ -455,7 +466,8 @@ function clearMsg(){ $("msg").style.display = "none"; }
     var note = document.getElementById("progress-note");
     if (note){
       note.textContent = (n + (d.unassigned || 0)).toLocaleString("en-US") +
-        " of 60,000 places taken. Updated daily — last updated " + d.updated + ".";
+        " of 60,000 places taken" +
+        (d.source === "live" ? "." : ". Updated daily — last updated " + d.updated + ".");
     }
   }).catch(function(){});
 })();
@@ -513,6 +525,10 @@ $("pay").addEventListener("click", function(){
   }).then(function(out){
     if (!out.ok){
       var e = out.d || {};
+      if (e.error === "artwork_full"){
+        throw new Error("Artwork " + pad(e.artwork) + " filled its last place while you were paying. " +
+          "Nothing has been charged. Remove it and try again.");
+      }
       throw new Error(e.detail || e.error || "The payment was not completed.");
     }
     show(out.d);
@@ -531,6 +547,12 @@ function show(d){
   }).join(", ");
   $("r-pieces").textContent = last.n;
   $("r-amount").textContent = yen(d.amount || last.n * PRICE);
+  $("r-pos").textContent    = (d.places && d.places.length)
+    ? d.places.map(function(p){
+        return pad(p.artwork) + " piece " + p.piece.toLocaleString("en-US") +
+               " (row " + p.row + ", column " + p.col + ")";
+      }).join(" · ")
+    : "—";
   $("done").style.display   = "block";
   $("done").scrollIntoView({ behavior: "smooth", block: "start" });
 }

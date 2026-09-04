@@ -1,0 +1,351 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ONE HEART PROJECT - participation backend (notify, place reservation, Square order, portrait storage)
+
+Parameters:
+  SiteOrigin:
+    Type: String
+    Default: https://oneheart.tamjump.com
+  NotifyTo:
+    Type: String
+    Default: info@tamjump.com
+  NotifyFrom:
+    Type: String
+    Default: info@tamjump.com
+  SquareLocationId:
+    Type: String
+    Default: LH3WP4241WJEV
+  SquareTokenParam:
+    Type: String
+    Default: /oneheart/square/access-token
+    Description: SSM SecureString parameter holding the Square production access token.
+
+Resources:
+
+  SignupsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-signups
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: email, AttributeType: S}
+      KeySchema:
+        - {AttributeName: email, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: orderId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: orderId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  SlotsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-slots
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: artworkId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: artworkId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  PortraitsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'oneheart-portraits-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: [!Ref SiteOrigin]
+            AllowedMethods: [PUT, GET, HEAD]
+            AllowedHeaders: ['*']
+            MaxAge: 3000
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  FnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: oneheart-api-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: oneheart-api-inline
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:Scan]
+                Resource:
+                  - !GetAtt SignupsTable.Arn
+                  - !GetAtt OrdersTable.Arn
+                  - !GetAtt SlotsTable.Arn
+              - Effect: Allow
+                Action: [ses:SendEmail]
+                Resource: '*'
+              - Effect: Allow
+                Action: [s3:PutObject, s3:GetObject]
+                Resource: !Sub '${PortraitsBucket.Arn}/*'
+              - Effect: Allow
+                Action: [ssm:GetParameter]
+                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SquareTokenParam}'
+
+  Fn:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: oneheart-api
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Timeout: 20
+      MemorySize: 256
+      Role: !GetAtt FnRole.Arn
+      Environment:
+        Variables:
+          TABLE: !Ref SignupsTable
+          ORDERS: !Ref OrdersTable
+          SLOTS: !Ref SlotsTable
+          BUCKET: !Ref PortraitsBucket
+          ORIGIN: !Ref SiteOrigin
+          NOTIFY_TO: !Ref NotifyTo
+          NOTIFY_FROM: !Ref NotifyFrom
+          SQ_LOCATION: !Ref SquareLocationId
+          TOKEN_PARAM: !Ref SquareTokenParam
+      Code:
+        ZipFile: |
+          const {DynamoDBClient,PutItemCommand,UpdateItemCommand,GetItemCommand,ScanCommand}=require("@aws-sdk/client-dynamodb");
+          const {SESClient,SendEmailCommand}=require("@aws-sdk/client-ses");
+          const {SSMClient,GetParameterCommand}=require("@aws-sdk/client-ssm");
+          const {randomUUID}=require("crypto");
+          const ddb=new DynamoDBClient({}),ses=new SESClient({}),ssm=new SSMClient({});
+          const H={"content-type":"application/json","access-control-allow-origin":process.env.ORIGIN};
+          const RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+          const r=(c,b)=>({statusCode:c,headers:H,body:JSON.stringify(b)});
+          let TOK;
+          async function tok(){
+            if(!TOK){const p=await ssm.send(new GetParameterCommand({Name:process.env.TOKEN_PARAM,WithDecryption:true}));TOK=p.Parameter.Value}
+            return TOK;
+          }
+          async function mail(s,t){
+            try{await ses.send(new SendEmailCommand({Source:process.env.NOTIFY_FROM,
+              Destination:{ToAddresses:[process.env.NOTIFY_TO]},
+              Message:{Subject:{Data:s},Body:{Text:{Data:t}}}}))}catch(e){console.error("ses",e.name)}
+          }
+          async function notify(d,ip){
+            const email=String(d.email||"").trim().toLowerCase();
+            if(email.length>254||!RE.test(email))return r(400,{error:"bad_email"});
+            const now=new Date().toISOString();
+            try{
+              await ddb.send(new PutItemCommand({TableName:process.env.TABLE,
+                Item:{email:{S:email},createdAt:{S:now},source:{S:String(d.source||"join")},ip:{S:ip}},
+                ConditionExpression:"attribute_not_exists(email)"}));
+            }catch(e){
+              if(e.name==="ConditionalCheckFailedException")return r(200,{ok:true,already:true});
+              console.error("ddb",e);return r(500,{error:"store_failed"});
+            }
+            await mail("ONE HEART - new signup",email+"\n"+now+"\n"+ip);
+            return r(200,{ok:true});
+          }
+          const SLOTS=process.env.SLOTS;
+          const TOTAL=id=>id===23?5000:2500;
+          const COLS=50;
+          const ROWS=id=>id===23?100:50;
+          const at=(id,i)=>({row:Math.ceil(i/COLS),col:((i-1)%COLS)+1,rows:ROWS(id),cols:COLS});
+          async function popFreed(id){
+            let it;
+            try{it=await ddb.send(new GetItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+              ProjectionExpression:"freed",ConsistentRead:true}))}catch(e){return 0}
+            const f=it.Item&&it.Item.freed&&it.Item.freed.NS;
+            if(!f||!f.length)return 0;
+            const n=f[0];
+            try{
+              await ddb.send(new UpdateItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+                UpdateExpression:"DELETE freed :s",ConditionExpression:"contains(freed,:n)",
+                ExpressionAttributeValues:{":s":{NS:[n]},":n":{N:n}}}));
+              return parseInt(n,10);
+            }catch(e){return 0}
+          }
+          async function reserve(id){
+            const f=await popFreed(id);
+            if(f)return f;
+            try{
+              const u=await ddb.send(new UpdateItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+                UpdateExpression:"SET tot = if_not_exists(tot,:t) ADD taken :one",
+                ConditionExpression:"attribute_not_exists(taken) OR taken < :t",
+                ExpressionAttributeValues:{":t":{N:String(TOTAL(id))},":one":{N:"1"}},
+                ReturnValues:"UPDATED_NEW"}));
+              return parseInt(u.Attributes.taken.N,10);
+            }catch(e){
+              if(e.name==="ConditionalCheckFailedException")return -1;
+              console.error("reserve",e);return -2;
+            }
+          }
+          async function release(id,i){
+            try{await ddb.send(new UpdateItemCommand({TableName:SLOTS,Key:{artworkId:{S:String(id)}},
+              UpdateExpression:"ADD freed :s",ExpressionAttributeValues:{":s":{NS:[String(i)]}}}))}
+            catch(e){console.error("release",id,i,e.name)}
+          }
+          async function releaseAll(list){for(const t of list)await release(t.id,t.i)}
+          async function slots(){
+            const out={};let k;
+            do{
+              const q=await ddb.send(new ScanCommand({TableName:SLOTS,ExclusiveStartKey:k}));
+              for(const it of (q.Items||[])){
+                const id=it.artworkId.S;
+                const t=it.taken?parseInt(it.taken.N,10):0;
+                const fr=(it.freed&&it.freed.NS)?it.freed.NS.length:0;
+                out[id]={taken:Math.max(0,t-fr),total:it.tot?parseInt(it.tot.N,10):TOTAL(parseInt(id,10))};
+              }
+              k=q.LastEvaluatedKey;
+            }while(k);
+            for(let i=1;i<=23;i++)if(!out[String(i)])out[String(i)]={taken:0,total:TOTAL(i)};
+            return r(200,{artworks:out,source:"live",updated:new Date().toISOString().slice(0,10)});
+          }
+          async function order(d,ip){
+            const email=String(d.email||"").trim().toLowerCase();
+            const src=String(d.sourceId||"");
+            const a=Array.isArray(d.artworks)?d.artworks.map(v=>parseInt(v,10)):[];
+            const n=a.length,c={};
+            if(email.length>254||!RE.test(email))return r(400,{error:"bad_email"});
+            if(!(n>=1&&n<=24))return r(400,{error:"bad_pieces"});
+            for(const x of a){
+              if(!(x>=1&&x<=23))return r(400,{error:"bad_artwork"});
+              c[x]=(c[x]||0)+1;
+              if(c[x]>(x===23?2:1))return r(400,{error:"dup_artwork"});
+            }
+            if(!src)return r(400,{error:"no_source"});
+            const id=randomUUID(),amt=n*500,now=new Date().toISOString(),ls=a.join(",");
+            const held=[];
+            for(const x of a){
+              const i=await reserve(x);
+              if(i===-1){await releaseAll(held);return r(409,{error:"artwork_full",artwork:x})}
+              if(i===-2){await releaseAll(held);return r(500,{error:"reserve_failed"})}
+              held.push({id:x,i:i});
+            }
+            const ps=held.map(t=>t.id+":"+t.i).join(",");
+            let pay;
+            try{
+              const res=await fetch("https://connect.squareup.com/v2/payments",{method:"POST",
+                headers:{authorization:"Bearer "+(await tok()),"square-version":"2025-01-23","content-type":"application/json"},
+                body:JSON.stringify({source_id:src,idempotency_key:id,location_id:process.env.SQ_LOCATION,
+                  amount_money:{amount:amt,currency:"JPY"},buyer_email_address:email,
+                  note:"ONE HEART "+n+" places ["+ls+"]"})});
+              pay=await res.json();
+              if(!res.ok){
+                const m=(pay.errors&&pay.errors[0]&&(pay.errors[0].detail||pay.errors[0].code))||"declined";
+                await releaseAll(held);
+                return r(402,{error:"payment_failed",detail:m});
+              }
+            }catch(e){console.error("sq",e);await releaseAll(held);return r(502,{error:"payment_error"})}
+            try{
+              await ddb.send(new PutItemCommand({TableName:process.env.ORDERS,Item:{
+                orderId:{S:id},email:{S:email},artworks:{S:ls},pieces:{N:String(n)},
+                amount:{N:String(amt)},paymentId:{S:(pay.payment&&pay.payment.id)||""},
+                status:{S:"paid"},portrait:{S:""},positions:{S:ps},createdAt:{S:now},ip:{S:ip}}}));
+            }catch(e){console.error("ddb",e)}
+            await mail("ONE HEART - order "+id,email+"\n"+n+" places ["+ls+"] = JPY "+amt+"\n"+ps+"\n"+now);
+            return r(200,{ok:true,orderId:id,amount:amt,
+              places:held.map(t=>Object.assign({artwork:t.id,piece:t.i},at(t.id,t.i)))});
+          }
+          exports.handler=async(e)=>{
+            const p=(e.rawPath||"").replace(/\/+$/,"")||"/";
+            const hx=(e.requestContext&&e.requestContext.http)||{};
+            const ip=hx.sourceIp||"";
+            if(p==="/slots"&&hx.method==="GET")return slots();
+            let d={};try{d=JSON.parse(e.body||"{}")}catch(x){return r(400,{error:"bad_json"})}
+            if(p==="/notify")return notify(d,ip);
+            if(p==="/order")return order(d,ip);
+            return r(404,{error:"not_found"});
+          };
+
+  Api:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: oneheart-api
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins: [!Ref SiteOrigin]
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [content-type]
+        MaxAge: 3000
+
+  Integration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref Api
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt Fn.Arn
+      PayloadFormatVersion: '2.0'
+
+  RouteNotify:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /notify'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteOrder:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /order'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteSlots:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'GET /slots'
+      Target: !Sub 'integrations/${Integration}'
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref Api
+      StageName: $default
+      AutoDeploy: true
+
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Fn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*/*'
+
+Outputs:
+  NotifyEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/notify'
+  OrderEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/order'
+  SlotsEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/slots'
+  SlotsTableName:
+    Value: !Ref SlotsTable
+  OrdersTableName:
+    Value: !Ref OrdersTable
+  PortraitsBucketName:
+    Value: !Ref PortraitsBucket
