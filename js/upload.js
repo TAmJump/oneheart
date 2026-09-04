@@ -5,7 +5,29 @@
   "use strict";
 
   var NAME_MAX = 24;      /* characters allowed on the reverse side */
-  var NAME_OK = /^[\p{L}\p{M}\p{N} .,'\u2019\-&\u00B7]+$/u;
+
+  /* Any language, and any symbol that types out in black and white (\u2661 \u2605 \u266A).
+     Colour emoji are refused: they cannot be engraved on the reverse. */
+  function nameLen(s) {
+    return Array.from(s).filter(function (c) {
+      return c !== "\uFE0E" && c !== "\uFE0F" && !/\p{M}/u.test(c);
+    }).length;
+  }
+
+  function nameOk(s) {
+    if (!s) { return false; }
+    var cp = Array.from(s);
+    for (var i = 0; i < cp.length; i++) {
+      var c = cp[i], next = cp[i + 1];
+      if (c === "\uFE0F" || c === "\u200D") { return false; }
+      if (c === "\uFE0E") { continue; }
+      if (/[\u{1F1E6}-\u{1F1FF}]/u.test(c)) { return false; }
+      if (/\p{Emoji_Presentation}/u.test(c) && next !== "\uFE0E") { return false; }
+      if (/[\p{L}\p{M}\p{N}\p{S}\p{P} ]/u.test(c)) { continue; }
+      return false;
+    }
+    return true;
+  }
 
   var MIN = 800;          /* shortest side a chosen file must have */
   var MAX = 1600;         /* longest side we keep from a file */
@@ -276,7 +298,7 @@
 
     if (nameBox && count) {
       var tick = function () {
-        var n = Array.from(niceName()).length;
+        var n = nameLen(niceName());
         count.textContent = n + " / " + NAME_MAX;
         count.className = "count" + (n > NAME_MAX ? " over" : "");
       };
@@ -309,8 +331,8 @@
       var nm = niceName();
       if (nameBox) {
         if (!nm) { say("Type the name or initials that go on the reverse of your piece."); nameBox.focus(); return; }
-        if (Array.from(nm).length > NAME_MAX) { say("That name is longer than " + NAME_MAX + " characters. Shorten it, or use initials."); nameBox.focus(); return; }
-        if (!NAME_OK.test(nm)) { say("Letters, numbers, spaces and . , ' - & only. Emoji cannot be engraved on the reverse."); nameBox.focus(); return; }
+        if (nameLen(nm) > NAME_MAX) { say("That name is longer than " + NAME_MAX + " characters. Shorten it, or use initials."); nameBox.focus(); return; }
+        if (!nameOk(nm)) { say("Colour emoji cannot go on the reverse. Black and white symbols such as \u2661 \u2605 \u266A are fine."); nameBox.focus(); return; }
       }
       busy = true;
       send.disabled = true;
@@ -330,7 +352,7 @@
           if (e === "too_large") { throw new Error("That photograph is too large even after resizing. Try another one."); }
           if (e === "bad_image") { throw new Error("That file could not be read as a photograph."); }
           if (e === "name_long") { throw new Error("That name is longer than " + NAME_MAX + " characters."); }
-          if (e === "name_chars") { throw new Error("That name uses characters we cannot put on the reverse. Letters, numbers, spaces and . , ' - & only."); }
+          if (e === "name_chars") { throw new Error("That name uses characters we cannot put on the reverse. Colour emoji are the usual reason."); }
           throw new Error("The photograph was not received. Please try again, or email it to info@tamjump.com.");
         }
         done = true;
