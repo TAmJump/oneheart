@@ -167,9 +167,25 @@
     .stat{flex:1 1 100%;border-right:0;border-bottom:1px solid var(--line);padding:20px 0}
     .stat:last-child{border-bottom:0}
   }
+  .launchbar{
+    background:var(--coral);color:#fff;border-bottom:3px solid var(--ink);
+    text-align:center;padding:13px 20px;font-size:14px;font-weight:700;
+    letter-spacing:.04em;line-height:1.5
+  }
+  .launchbar a{color:#fff;text-decoration:none;display:inline-block}
+  .launchbar a:hover{text-decoration:underline}
+  .launchbar .d{font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+  .launchbar .go{white-space:nowrap;border-bottom:2px solid rgba(255,255,255,.6)}
+  @media (max-width:600px){ .launchbar{font-size:13px;padding:12px 16px} }
 </style>
 </head>
 <body>
+
+<div class="launchbar">
+  <a href="https://www.kickstarter.com/projects/tamj/we-are-all-one-heart-23-pieces-one-world?ref=4k7z69">
+    <span class="d">Launching Tuesday 8 September</span> &nbsp;·&nbsp; 30 days on Kickstarter &nbsp;<span class="go">See the project &rarr;</span>
+  </a>
+</div>
 
 <div class="hero">
   <div class="wrap">
@@ -416,6 +432,7 @@
     <a href="mailto:info@tamjump.com">info@tamjump.com</a>
     <div class="fnav">
       <a href="ceo.html">You are the CEO</a>
+      <a href="ceo-ja.html">日本語</a>
       <a href="/join/">Join after the campaign</a>
       <a href="terms.html">Participation Terms</a>
       <a href="/verify/">Verify a certificate</a>
