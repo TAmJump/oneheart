@@ -34,6 +34,8 @@
   var SHOT_W = 1200;      /* captured photo, 3:4 like an ID photo */
   var SHOT_H = 1600;
   var QUALITY = 0.88;
+  var BG = "#F2F1EE";     /* not pure white, so light clothing still reads */
+  var TOP = 0.235;        /* share of the card kept clear for the words */
 
   /* ID-photo guide. mode "live" darkens everything outside the head area,
      mode "check" is outline only, laid over the shot that was taken. */
@@ -97,20 +99,31 @@
     return segLoad;
   }
 
-  function mark(cx, W, H) {
-    var text = "WE ARE ALL ONE HEART";
-    var size = Math.round(W * 0.028);
-    var track = size * 0.34;
-    cx.font = '700 ' + size + 'px Inter, Helvetica, Arial, sans-serif';
-    cx.fillStyle = "rgba(17,17,17,.42)";
-    cx.textBaseline = "alphabetic";
-    var chars = text.split("");
-    var total = chars.reduce(function (n, c) { return n + cx.measureText(c).width + track; }, -track);
-    var x = (W - total) / 2, y = H - Math.round(H * 0.052);
-    chars.forEach(function (c) {
-      cx.fillText(c, x, y);
-      x += cx.measureText(c).width + track;
-    });
+  /* where the person sits inside the frame, read off the mask at low resolution */
+  function measure(maskSource, W, H) {
+    var w = 90, h = 120;
+    var cv = d.createElement("canvas");
+    cv.width = w; cv.height = h;
+    var cx = cv.getContext("2d");
+    cx.drawImage(maskSource, 0, 0, w, h);
+    var px = cx.getImageData(0, 0, w, h).data;
+    var x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var i = (y * w + x) * 4;
+        if (px[i] > 140 || px[i + 3] > 140 && px[i] > 60) {
+          if (x < x0) { x0 = x; }
+          if (x > x1) { x1 = x; }
+          if (y < y0) { y0 = y; }
+          if (y > y1) { y1 = y; }
+        }
+      }
+    }
+    if (x1 < 0) { return null; }
+    return {
+      x: x0 / w * W, y: y0 / h * H,
+      w: (x1 - x0 + 1) / w * W, h: (y1 - y0 + 1) / h * H
+    };
   }
 
   function cutout(im) {
@@ -130,11 +143,10 @@
             cx.globalCompositeOperation = "source-in";
             cx.drawImage(out.image, 0, 0, W, H);
             cx.globalCompositeOperation = "destination-over";
-            cx.fillStyle = "#FFFFFF";
+            cx.fillStyle = BG;
             cx.fillRect(0, 0, W, H);
             cx.globalCompositeOperation = "source-over";
-            mark(cx, W, H);
-            res(cv.toDataURL("image/jpeg", QUALITY));
+            res({ src: cv.toDataURL("image/jpeg", QUALITY), box: measure(out.segmentationMask, W, H) });
           } catch (err) { rej(err); }
         });
         seg.send({ image: im }).catch(rej);
@@ -173,20 +185,45 @@
     cx.closePath();
   }
 
-  function frontCard(im) {
+  function frontCard(im, box) {
     var cv = d.createElement("canvas");
     cv.width = CARD_W; cv.height = CARD_H;
     var cx = cv.getContext("2d");
-    cx.fillStyle = "#F4F4F2";
+    cx.fillStyle = BG;
     roundRect(cx, 0, 0, CARD_W, CARD_H, R);
     cx.fill();
     cx.save();
     roundRect(cx, 0, 0, CARD_W, CARD_H, R);
     cx.clip();
-    var s = Math.max(CARD_W / im.naturalWidth, CARD_H / im.naturalHeight);
-    var w = im.naturalWidth * s, h = im.naturalHeight * s;
-    cx.drawImage(im, (CARD_W - w) / 2, (CARD_H - h) / 2, w, h);
+    var top = CARD_H * TOP;
+    if (box && box.w > 0 && box.h > 0) {
+      var s = Math.min((CARD_H - top) / box.h, (CARD_W * 0.96) / box.w);
+      var w = box.w * s, h = box.h * s;
+      cx.drawImage(im, box.x, box.y, box.w, box.h, (CARD_W - w) / 2, CARD_H - h, w, h);
+    } else {
+      var f = Math.max(CARD_W / im.naturalWidth, (CARD_H - top) / im.naturalHeight);
+      var fw = im.naturalWidth * f, fh = im.naturalHeight * f;
+      cx.drawImage(im, (CARD_W - fw) / 2, CARD_H - fh, fw, fh);
+    }
     cx.restore();
+
+    var lines = [["WE ARE ALL", "#111111"], ["ONE HEART", "#E53935"]];
+    var size = Math.round(top * 0.40);
+    cx.textAlign = "center";
+    cx.textBaseline = "middle";
+    while (size > 20) {
+      cx.font = '900 ' + size + 'px Inter, Helvetica, Arial, sans-serif';
+      var widest = Math.max(cx.measureText(lines[0][0]).width, cx.measureText(lines[1][0]).width);
+      if (widest <= CARD_W * 0.88) { break; }
+      size -= 2;
+    }
+    var y = top * 0.44;
+    lines.forEach(function (l) {
+      cx.fillStyle = l[1];
+      cx.fillText(l[0], CARD_W / 2, y);
+      y += size * 1.02;
+    });
+
     cx.strokeStyle = "#111111";
     cx.lineWidth = 6;
     roundRect(cx, 3, 3, CARD_W - 6, CARD_H - 6, R - 3);
@@ -237,7 +274,7 @@
     return cv;
   }
 
-  function showCard(stage, ids, src, name) {
+  function showCard(stage, ids, src, name, box, onSheet) {
     var box = d.createElement("div");
     box.className = "piece";
     stage.innerHTML = "";
@@ -252,7 +289,8 @@
         ? w.document.fonts.load('60px "Great Vibes"').catch(function () { return null; })
         : Promise.resolve(null);
       return ready.then(function () {
-        var f = frontCard(im), b = backCard(name);
+        var f = frontCard(im, box), b = backCard(name);
+        if (onSheet) { onSheet(sheet(f, b).toDataURL("image/jpeg", 0.9)); }
         [f, b].forEach(function (c) {
           var i = new Image();
           i.src = c.toDataURL("image/png");
@@ -276,7 +314,7 @@
     var cam = ids.cam ? el(ids.cam) : null;
     var nameBox = ids.name ? el(ids.name) : null;
     var count = ids.count ? el(ids.count) : null;
-    var data = null, busy = false, done = false, stream = null, video = null;
+    var data = null, busy = false, done = false, stream = null, video = null, box = null;
 
     function say(text, ok) {
       msg.textContent = text || "";
@@ -298,6 +336,7 @@
       stop();
       stage.innerHTML = "";
       data = null;
+      box = null;
       ready(false);
     }
 
@@ -331,7 +370,8 @@
       busyNote.textContent = "Taking the background out\u2026";
       stage.appendChild(busyNote);
       loadImage(src).then(cutout).then(function (cut) {
-        paint(cut, again, src, cut);
+        box = cut.box;
+        paint(cut.src, again, src, cut.src);
       }).catch(function () {
         if (busyNote.parentNode) { busyNote.parentNode.removeChild(busyNote); }
       });
@@ -436,7 +476,7 @@
             throw new Error("Your piece could not be loaded. Please try again.");
           }
           stop();
-          showCard(stage, ids, out.j.image, out.j.name);
+          showCard(stage, ids, out.j.image, out.j.name, null, null);
         }).catch(function (err) {
           recall.disabled = false;
           recall.textContent = "See your piece";
@@ -482,7 +522,13 @@
         if (cam) { cam.disabled = true; }
         if (nameBox) { nameBox.disabled = true; }
         say("Your portrait is in. A confirmation is on its way to you, and nothing else is needed.", true);
-        showCard(stage, ids, data, nm);
+        showCard(stage, ids, data, nm, box, function (card) {
+          fetch(cfg.endpoint, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ orderId: who.orderId, email: who.email, card: card })
+          }).catch(function () {});
+        });
       }).catch(function (err) {
         busy = false;
         send.disabled = false;
