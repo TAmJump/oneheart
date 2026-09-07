@@ -72,6 +72,10 @@
   .up .piece{margin-top:22px}
   .up .piece .cards{display:flex;gap:16px;margin:4px 0 18px}
   .up .piece .cards img{display:block;width:calc(50% - 8px);height:auto}
+  .up .link{background:none;border:0;padding:0;font:inherit;font-size:13px;font-weight:700;color:var(--dim);text-decoration:underline;cursor:pointer}
+  .up .link:hover{color:var(--coral)}
+  .recall{border-top:1px solid var(--ink);margin-top:28px;padding-top:22px}
+  .recall p{font-size:14px;color:var(--dim);margin:0 0 14px}
   .up .namebox{margin-top:22px}
   .up .namebox input{width:100%;max-width:420px;padding:14px 16px;font:inherit;font-size:16px;border:3px solid var(--ink);background:#fff;color:var(--ink);border-radius:0;-webkit-appearance:none;appearance:none}
   .up .namebox input:focus{outline:3px solid var(--coral);outline-offset:2px}
@@ -136,6 +140,11 @@
         <div class="msg" id="up-msg"></div>
       </div>
 
+      <div class="recall">
+        <p>Sent your photograph already? Put the same order number and email address above, and your piece comes back.</p>
+        <button class="btn alt" type="button" id="up-recall">See your piece</button>
+      </div>
+
       <p class="fineprint">If this page will not take your photograph, email it to <a href="mailto:info@tamjump.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">info@tamjump.com</a> with your order number in the subject line.</p>
     </div>
 
@@ -162,6 +171,7 @@
 <script src="/js/upload.js"></script>
 <script>
 var PORTRAIT_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/portrait";
+var PIECE_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/piece";
 var RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function $(id){ return document.getElementById(id); }
@@ -181,7 +191,8 @@ function say(t){
 
 portraitUpload({
   endpoint: PORTRAIT_ENDPOINT,
-  ids: { cam: "up-cam", file: "up-file", stage: "up-stage", send: "up-send", msg: "up-msg", name: "up-name", count: "up-count" },
+  pieceEndpoint: PIECE_ENDPOINT,
+  ids: { cam: "up-cam", file: "up-file", stage: "up-stage", send: "up-send", msg: "up-msg", name: "up-name", count: "up-count", recall: "up-recall" },
   order: function(){
     var id = $("oid").value.trim();
     var mail = $("mail").value.trim().toLowerCase();

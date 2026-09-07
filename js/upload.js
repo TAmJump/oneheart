@@ -78,6 +78,70 @@
     });
   }
 
+  /* Background removal. The model is fetched on demand; if anything fails we
+     keep the photograph exactly as it was taken. */
+  var SEG_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/";
+  var segLoad = null;
+
+  function loadSeg() {
+    if (segLoad) { return segLoad; }
+    segLoad = new Promise(function (res, rej) {
+      var t = d.createElement("script");
+      t.src = SEG_BASE + "selfie_segmentation.js";
+      t.crossOrigin = "anonymous";
+      t.onload = function () { res(w.SelfieSegmentation); };
+      t.onerror = function () { rej(new Error("no model")); };
+      d.head.appendChild(t);
+      setTimeout(function () { rej(new Error("slow model")); }, 20000);
+    });
+    return segLoad;
+  }
+
+  function mark(cx, W, H) {
+    var text = "WE ARE ALL ONE HEART";
+    var size = Math.round(W * 0.028);
+    var track = size * 0.34;
+    cx.font = '700 ' + size + 'px Inter, Helvetica, Arial, sans-serif';
+    cx.fillStyle = "rgba(17,17,17,.42)";
+    cx.textBaseline = "alphabetic";
+    var chars = text.split("");
+    var total = chars.reduce(function (n, c) { return n + cx.measureText(c).width + track; }, -track);
+    var x = (W - total) / 2, y = H - Math.round(H * 0.052);
+    chars.forEach(function (c) {
+      cx.fillText(c, x, y);
+      x += cx.measureText(c).width + track;
+    });
+  }
+
+  function cutout(im) {
+    return loadSeg().then(function (Seg) {
+      return new Promise(function (res, rej) {
+        var seg = new Seg({ locateFile: function (f) { return SEG_BASE + f; } });
+        seg.setOptions({ modelSelection: 1 });
+        var timer = setTimeout(function () { rej(new Error("slow")); }, 20000);
+        seg.onResults(function (out) {
+          clearTimeout(timer);
+          try {
+            var W = im.naturalWidth || im.width, H = im.naturalHeight || im.height;
+            var cv = d.createElement("canvas");
+            cv.width = W; cv.height = H;
+            var cx = cv.getContext("2d");
+            cx.drawImage(out.segmentationMask, 0, 0, W, H);
+            cx.globalCompositeOperation = "source-in";
+            cx.drawImage(out.image, 0, 0, W, H);
+            cx.globalCompositeOperation = "destination-over";
+            cx.fillStyle = "#FFFFFF";
+            cx.fillRect(0, 0, W, H);
+            cx.globalCompositeOperation = "source-over";
+            mark(cx, W, H);
+            res(cv.toDataURL("image/jpeg", QUALITY));
+          } catch (err) { rej(err); }
+        });
+        seg.send({ image: im }).catch(rej);
+      });
+    });
+  }
+
   function shrink(im) {
     var w0 = im.naturalWidth, h0 = im.naturalHeight;
     if (Math.min(w0, h0) < MIN) {
@@ -237,17 +301,40 @@
       ready(false);
     }
 
-    function preview(src, again) {
-      stop();
+    function paint(src, again, plain, cut) {
       stage.innerHTML =
         '<div class="shot">' + '<img src="' + src + '" alt="">' + (again ? guide("check") : "") + '</div>' +
-        (again ? '<p class="cap">Is your face inside the outline, with your shoulders in the frame? If not, take another.</p>' +
-                 '<button class="btn alt" type="button" id="' + ids.stage + '-retake">Take another</button>' : "");
+        (again ? '<p class="cap">Is your face inside the outline, with your shoulders in the frame? If not, take another.</p>' : "") +
+        '<div class="uprow">' +
+        (again ? '<button class="btn alt" type="button" id="' + ids.stage + '-retake">Take another</button>' : "") +
+        (cut ? '<button class="link" type="button" id="' + ids.stage + '-swap"></button>' : "") +
+        '</div>';
       data = src;
       ready(true);
       if (again) {
         el(ids.stage + "-retake").addEventListener("click", function () { openCamera(); });
       }
+      if (cut) {
+        var swap = el(ids.stage + "-swap");
+        swap.textContent = src === cut ? "Keep my own background" : "Put me on a white background";
+        swap.addEventListener("click", function () {
+          paint(src === cut ? plain : cut, again, plain, cut);
+        });
+      }
+    }
+
+    function preview(src, again) {
+      stop();
+      paint(src, again, src, null);
+      var busyNote = d.createElement("p");
+      busyNote.className = "cap";
+      busyNote.textContent = "Taking the background out\u2026";
+      stage.appendChild(busyNote);
+      loadImage(src).then(cutout).then(function (cut) {
+        paint(cut, again, src, cut);
+      }).catch(function () {
+        if (busyNote.parentNode) { busyNote.parentNode.removeChild(busyNote); }
+      });
     }
 
     function openCamera() {
@@ -323,6 +410,40 @@
         say(err.message || "That photograph could not be prepared.");
       });
     });
+
+    if (ids.recall && el(ids.recall) && cfg.pieceEndpoint) {
+      var recall = el(ids.recall);
+      recall.addEventListener("click", function () {
+        var who = cfg.order();
+        if (!who) { return; }
+        recall.disabled = true;
+        recall.textContent = "Looking";
+        say("");
+        fetch(cfg.pieceEndpoint, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ orderId: who.orderId, email: who.email })
+        }).then(function (r) {
+          return r.json().then(function (j) { return { ok: r.ok, j: j }; });
+        }).then(function (out) {
+          recall.disabled = false;
+          recall.textContent = "See your piece";
+          if (!out.ok) {
+            var e = (out.j && out.j.error) || "";
+            if (e === "no_portrait") { throw new Error("No photograph has been sent for this order yet."); }
+            if (e === "no_order") { throw new Error("We cannot find that order number. Check it against your confirmation email."); }
+            if (e === "email_mismatch") { throw new Error("That email address does not match the one on this order."); }
+            throw new Error("Your piece could not be loaded. Please try again.");
+          }
+          stop();
+          showCard(stage, ids, out.j.image, out.j.name);
+        }).catch(function (err) {
+          recall.disabled = false;
+          recall.textContent = "See your piece";
+          say(err.message);
+        });
+      });
+    }
 
     send.addEventListener("click", function () {
       if (busy || done || !data) { return; }
