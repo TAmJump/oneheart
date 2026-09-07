@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 21 * * *"   # 06:00 JST every day
   workflow_dispatch:
+    inputs:
+      check_only:
+        description: "Print how each reward maps and write nothing"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -20,12 +25,16 @@ jobs:
 
       - run: pip install requests
 
+      - name: Check the parser against fixtures
+        run: python tools/progress_parse_test.py
+
       - name: Read Kickstarter reward counts
         env:
           KS_PROJECT_URL: ${{ vars.KS_PROJECT_URL }}
-        run: python scripts/update_progress.py
+        run: python scripts/update_progress.py ${{ inputs.check_only && '--check' || '' }}
 
       - name: Commit if changed
+        if: ${{ !inputs.check_only }}
         run: |
           git config user.name "tamjump"
           git config user.email "tiger@tamjump.com"

@@ -15,7 +15,13 @@ Mapping rules
 Usage
   python scripts/update_progress.py                  # fetch and write
   python scripts/update_progress.py --dry-run        # fetch and print only
+  python scripts/update_progress.py --check          # print the mapping, write nothing
   python scripts/update_progress.py --html FILE      # parse a saved page
+
+The mapping is checked before anything is written. Kickstarter carries one
+reward per artwork, so all 23 have to be matched by a reward title; if any is
+missing the reward names have moved and the run stops without writing, rather
+than publishing a number that is quietly wrong. --force writes anyway.
 """
 
 import argparse
@@ -166,6 +172,40 @@ def parse(pages):
 
 # ------------------------------------------------------------------- mapping
 
+def classify(rewards):
+    """Return (mapping, matched artwork numbers, titles that matched nothing)."""
+    mapping, matched, loose = {}, set(), []
+    for title in sorted(rewards):
+        key = artwork_of(title)
+        mapping[title] = key
+        if isinstance(key, int):
+            matched.add(key)
+        elif key is None:
+            loose.append(title)
+    return mapping, matched, loose
+
+
+def report(rewards):
+    mapping, matched, loose = classify(rewards)
+    width = max((len(t) for t in mapping), default=10)
+    for title in sorted(mapping):
+        key = mapping[title]
+        if key == "founding":
+            where = "FOUNDING HOLDER -> every artwork"
+        elif key is None:
+            where = "unassigned"
+        else:
+            where = "%02d %s" % (key, TITLES[key - 1])
+        print("  %-*s  %6d backers  ->  %s" % (width, title, rewards[title], where))
+    missing = [i for i in range(1, 24) if i not in matched]
+    if missing:
+        print("\nno reward title matched: " + ", ".join(
+            "%02d %s" % (i, TITLES[i - 1]) for i in missing), file=sys.stderr)
+    if loose:
+        print("\ncounted as unassigned: " + ", ".join(loose), file=sys.stderr)
+    return missing
+
+
 def tally(rewards):
     taken = {i: 0 for i in range(1, 24)}
     unassigned = 0
@@ -185,11 +225,25 @@ def tally(rewards):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--check", action="store_true",
+                    help="print how every reward title maps, and write nothing")
+    ap.add_argument("--force", action="store_true",
+                    help="write even when some artworks have no matching reward")
     ap.add_argument("--html", help="parse a saved HTML file instead of fetching")
     args = ap.parse_args()
 
     pages = [Path(args.html).read_text()] if args.html else fetch_rewards()
     rewards = parse(pages)
+
+    missing = report(rewards)
+    if args.check:
+        return 1 if missing else 0
+    if missing and not args.force:
+        print("\nstopping without writing: %d of 23 artworks have no reward title. "
+              "Check the reward names on Kickstarter, then run again."
+              % len(missing), file=sys.stderr)
+        return 1
+
     taken, unassigned = tally(rewards)
 
     jst = datetime.timezone(datetime.timedelta(hours=9))
@@ -204,13 +258,25 @@ def main():
     }
 
     print("total taken: %d  unassigned: %d" % (sum(taken.values()), unassigned))
+
+    try:
+        was = json.loads(OUT.read_text())
+        before = sum(a["taken"] for a in was["artworks"].values())
+        if sum(taken.values()) < before:
+            print("note: the total went down, %d -> %d. Cancelled pledges do this, "
+                  "so it is written as it stands." % (before, sum(taken.values())),
+                  file=sys.stderr)
+    except Exception:
+        pass
+
     if args.dry_run:
         print(json.dumps(doc, indent=2))
-        return
+        return 0
 
     OUT.write_text(json.dumps(doc, indent=2) + "\n")
     print("wrote %s" % OUT)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)
