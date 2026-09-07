@@ -123,6 +123,11 @@
   .fineprint{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.7}
   .msg{display:none;border:3px solid var(--coral);background:#fff;padding:16px 18px;margin-top:20px;font-size:14px;font-weight:600}
   .msg.ok{border-color:var(--ink)}
+  .notice{border:3px solid var(--ink);background:var(--panel);padding:34px;margin-top:10px}
+  .notice .cta-row{display:flex;flex-wrap:wrap;gap:14px}
+  #closed{display:none}
+  body.closed #closed{display:block}
+  body.closed .buying{display:none}
   .up .uprow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:20px}
   .up .btn.alt{background:#fff;color:var(--ink)}
   .up .btn.alt:hover{background:var(--coral);border-color:var(--coral);color:#fff}
@@ -192,7 +197,19 @@
   </div>
 </div>
 
-<section>
+<div class="wrap" id="closed">
+  <div class="notice">
+    <p class="eyebrow" style="color:var(--coral)">Not open yet</p>
+    <h2 style="margin:0 0 12px">Participation opens on 9 October 2026.</h2>
+    <p class="muted" style="margin:0">Until then, every place is on Kickstarter. The campaign runs to 8 October 2026, and this page opens the day it ends. Leave an address on the <a href="/join/" style="text-decoration:underline">join page</a> and we will write to you once, on the day it opens.</p>
+    <div class="cta-row" style="margin-top:26px">
+      <a class="cta" href="https://www.kickstarter.com/projects/tamj/we-are-all-one-heart-23-pieces-one-world?ref=4k7z69">Take your place on Kickstarter</a>
+      <a class="cta ghost" href="/join/">Tell me when it opens</a>
+    </div>
+  </div>
+</div>
+
+<section class="buying">
   <div class="wrap">
     <p class="stepno">Step 01</p>
     <h2>Choose your artworks.</h2>
@@ -206,7 +223,7 @@
   </div>
 </section>
 
-<section>
+<section class="buying">
   <div class="wrap">
     <p class="stepno">Step 02</p>
     <h2>Confirm and tell us where to write.</h2>
@@ -230,7 +247,7 @@
   </div>
 </section>
 
-<section>
+<section class="buying">
   <div class="wrap">
     <p class="stepno">Step 03</p>
     <h2>Payment.</h2>
@@ -251,7 +268,7 @@
   </div>
 </section>
 
-<section id="done">
+<section id="done" class="buying">
   <div class="wrap">
     <p class="stepno">Confirmed</p>
     <h2>Your places are held.</h2>
@@ -308,6 +325,16 @@
 </footer>
 
 <script src="https://web.squarecdn.com/v1/square.js"></script>
+<script>
+/* Places are on Kickstarter until 8 October 2026. ?preview=1 opens the form for our own testing. */
+(function(){
+  var OPENS = Date.UTC(2026, 9, 8, 15, 0, 0);   /* 9 October 2026, 00:00 JST */
+  var preview = /[?&]preview=1/.test(location.search);
+  if (Date.now() < OPENS && !preview) {
+    document.body.className = (document.body.className + " closed").trim();
+  }
+})();
+</script>
 <script src="/js/upload.js"></script>
 <script>
 var ORDER_ENDPOINT = "https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/order";
