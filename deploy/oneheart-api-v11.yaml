@@ -1,0 +1,299 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ONE HEART PROJECT - participation backend (notify, place reservation, Square order, portrait storage, certificates, Square webhook). Code is deployed from an S3 zip; see tools/deploy_api.sh.
+
+Parameters:
+  SiteOrigin:
+    Type: String
+    Default: https://oneheart.tamjump.com
+  NotifyTo:
+    Type: String
+    Default: info@tamjump.com
+  NotifyFrom:
+    Type: String
+    Default: info@tamjump.com
+  SquareLocationId:
+    Type: String
+    Default: LH3WP4241WJEV
+  SquareTokenParam:
+    Type: String
+    Default: /oneheart/square/access-token
+    Description: SSM SecureString parameter holding the Square production access token.
+  SquareWebhookParam:
+    Type: String
+    Default: /oneheart/square/webhook-key
+    Description: SSM SecureString parameter holding the Square webhook signature key. The webhook refuses every call until this parameter exists.
+  SquareApplicationId:
+    Type: String
+    Default: sq0idp-DDvfI0E05acVUIYXHZimkQ
+    Description: Square application id for ONE HEART. Webhook events from any other application are ignored.
+  WebhookUrl:
+    Type: String
+    Default: https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/square-webhook
+    Description: The notification URL registered in the Square dashboard. Square signs the URL together with the body, so this must match exactly.
+  CodeS3Bucket:
+    Type: String
+    Default: oneheart-deploy-310133718901
+    Description: Bucket holding the function zip. Created once, outside this stack.
+  CodeS3Key:
+    Type: String
+    Description: Key of the function zip. Change it on every deploy so the new code is picked up.
+
+Resources:
+
+  SignupsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-signups
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: email, AttributeType: S}
+      KeySchema:
+        - {AttributeName: email, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: orderId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: orderId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  SlotsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-slots
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: artworkId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: artworkId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  CertsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-certs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: certId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: certId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  PaymentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: oneheart-payments
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: paymentId, AttributeType: S}
+      KeySchema:
+        - {AttributeName: paymentId, KeyType: HASH}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  PortraitsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'oneheart-portraits-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: [!Ref SiteOrigin]
+            AllowedMethods: [PUT, GET, HEAD]
+            AllowedHeaders: ['*']
+            MaxAge: 3000
+      Tags:
+        - {Key: project, Value: oneheart}
+
+  FnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: oneheart-api-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: oneheart-api-inline
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:Scan]
+                Resource:
+                  - !GetAtt SignupsTable.Arn
+                  - !GetAtt OrdersTable.Arn
+                  - !GetAtt SlotsTable.Arn
+                  - !GetAtt CertsTable.Arn
+                  - !GetAtt PaymentsTable.Arn
+              - Effect: Allow
+                Action: [ses:SendEmail, ses:SendRawEmail]
+                Resource: '*'
+              - Effect: Allow
+                Action: [s3:PutObject, s3:GetObject]
+                Resource: !Sub '${PortraitsBucket.Arn}/*'
+              - Effect: Allow
+                Action: [ssm:GetParameter]
+                Resource:
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SquareTokenParam}'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SquareWebhookParam}'
+
+  Fn:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: oneheart-api
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Timeout: 25
+      MemorySize: 256
+      Role: !GetAtt FnRole.Arn
+      Environment:
+        Variables:
+          TABLE: !Ref SignupsTable
+          ORDERS: !Ref OrdersTable
+          SLOTS: !Ref SlotsTable
+          BUCKET: !Ref PortraitsBucket
+          ORIGIN: !Ref SiteOrigin
+          NOTIFY_TO: !Ref NotifyTo
+          NOTIFY_FROM: !Ref NotifyFrom
+          SQ_LOCATION: !Ref SquareLocationId
+          TOKEN_PARAM: !Ref SquareTokenParam
+          CERTS: !Ref CertsTable
+          PAYMENTS: !Ref PaymentsTable
+          WEBHOOK_PARAM: !Ref SquareWebhookParam
+          SQ_APP_ID: !Ref SquareApplicationId
+          WEBHOOK_URL: !Ref WebhookUrl
+      Code:
+        S3Bucket: !Ref CodeS3Bucket
+        S3Key: !Ref CodeS3Key
+
+  Api:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: oneheart-api
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins: [!Ref SiteOrigin]
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [content-type]
+        MaxAge: 3000
+
+  Integration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref Api
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt Fn.Arn
+      PayloadFormatVersion: '2.0'
+
+  RouteNotify:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /notify'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteOrder:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /order'
+      Target: !Sub 'integrations/${Integration}'
+
+  RoutePiece:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /piece'
+      Target: !Sub 'integrations/${Integration}'
+
+  RoutePortrait:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /portrait'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteVerify:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /verify'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteSquareWebhook:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'POST /square-webhook'
+      Target: !Sub 'integrations/${Integration}'
+
+  RouteSlots:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: 'GET /slots'
+      Target: !Sub 'integrations/${Integration}'
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref Api
+      StageName: $default
+      AutoDeploy: true
+
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Fn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*/*'
+
+Outputs:
+  NotifyEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/notify'
+  OrderEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/order'
+  SlotsEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/slots'
+  SlotsTableName:
+    Value: !Ref SlotsTable
+  OrdersTableName:
+    Value: !Ref OrdersTable
+  PortraitsBucketName:
+    Value: !Ref PortraitsBucket
+  VerifyEndpoint:
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/verify'
+  SquareWebhookEndpoint:
+    Description: Register this URL in the Square dashboard, and keep the WebhookUrl parameter identical to it.
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/square-webhook'
+  CertsTableName:
+    Value: !Ref CertsTable
+  PaymentsTableName:
+    Value: !Ref PaymentsTable

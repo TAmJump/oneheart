@@ -67,6 +67,13 @@
     font-size:11px;letter-spacing:.16em;text-transform:uppercase;
     font-weight:700;color:var(--coral);margin-bottom:8px
   }
+  .result dl{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;margin:14px 0 0}
+  .result dt{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:700;color:var(--dim);align-self:center
+  }
+  .result dd{margin:0;font-weight:700}
+  .result .cid{font-size:19px;font-weight:800;letter-spacing:.02em;word-break:break-all}
 
   section{padding:36px 0;border-top:2px solid var(--ink)}
   h2{font-size:18px;font-weight:700;margin:0 0 12px;letter-spacing:-.01em}
@@ -114,9 +121,9 @@
   </div>
 
   <section>
-    <h2>Verification opens when the first artworks are finalised</h2>
-    <p class="muted">Certificates are issued after an artwork is closed and rendered. Places stay open until 30 June 2027, and certificates for every participant follow with delivery by 30 September 2027. Until then there are no certificate IDs to check, and this page cannot return a result.</p>
-    <p class="muted">If you are holding a certificate and this page is not yet returning results, write to <a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID and we will confirm it directly.</p>
+    <h2>When the certificate reaches you</h2>
+    <p class="muted">A certificate ID is created for a place at the moment the place is held, and this page will confirm it from that day. The printed certificate itself follows later: places stay open until 30 June 2027, the artworks are rendered as they stand on that date, and certificates go out with delivery by 30 September 2027.</p>
+    <p class="muted">If an ID you are holding does not come back with a result, write to <a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID and we will check it directly.</p>
   </section>
 
   <section>
@@ -125,7 +132,7 @@
       <li>whether the certificate ID was issued by the ONE HEART PROJECT;</li>
       <li>the artwork number and title the piece belongs to;</li>
       <li>the piece number and its position within that artwork;</li>
-      <li>the date the artwork was completed.</li>
+      <li>the date the place was held.</li>
     </ul>
     <p class="muted">Verification does not display the name, photograph or contact details of the certificate holder.</p>
   </section>
@@ -153,25 +160,90 @@
 
 <script>
 (function(){
+  var API = 'https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com/verify';
   var input = document.getElementById('cid');
   var btn = document.getElementById('go');
   var box = document.getElementById('result');
+  var busy = false;
 
-  function show(kind, text){
-    box.innerHTML = '<div class="k">' + kind + '</div>' + text;
+  function show(kind, html){
+    box.innerHTML = '<div class="k">' + kind + '</div>' + html;
     box.classList.add('show');
   }
 
+  function esc(v){
+    return String(v).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function pad(n, w){
+    var v = String(n);
+    while (v.length < w) v = '0' + v;
+    return v;
+  }
+
+  function tidy(v){
+    return v.replace(/[\s\u3000]+/g, '').toUpperCase();
+  }
+
+  function found(d){
+    show('Issued by the One Heart Project',
+      '<div class="cid">' + esc(d.certId) + '</div>' +
+      '<dl>' +
+        '<dt>Artwork</dt><dd>' + esc(pad(d.artwork, 2)) + ' &middot; ' + esc(d.title) + '</dd>' +
+        '<dt>Piece</dt><dd>' + esc(d.piece) + '</dd>' +
+        '<dt>Position</dt><dd>row ' + esc(d.row) + ', column ' + esc(d.col) + '</dd>' +
+        '<dt>Place held</dt><dd>' + esc(d.heldOn || '-') + '</dd>' +
+      '</dl>');
+  }
+
   function check(){
-    var v = input.value.trim();
+    if (busy) return;
+    var v = tidy(input.value);
     if (!v){
       show('Enter an ID', 'Type the certificate ID printed on your certificate, then press Verify.');
       return;
     }
-    show('Not available yet',
-      'Certificate verification opens once the first artworks have been finalised and their certificates have been issued. ' +
-      'Your ID has not been checked against anything. If you are holding a certificate now, email ' +
-      '<a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID and we will confirm it for you.');
+    input.value = v;
+    if (!/^OHP\d{2}-\d{4}-[0-9A-F]{8}$/.test(v)){
+      show('Not a certificate ID',
+        'A certificate ID looks like <strong>OHP17-0042-9C3F1AB2</strong>: the artwork number, the piece number, ' +
+        'then eight characters. Check the upper right of your certificate and try again.');
+      return;
+    }
+
+    busy = true;
+    btn.disabled = true;
+    show('Checking', 'Looking up ' + esc(v) + '.');
+
+    fetch(API, {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({certId: v})
+    }).then(function(res){
+      return res.json().then(function(d){ return {status: res.status, data: d}; });
+    }).then(function(o){
+      if (o.status === 200 && o.data && o.data.ok){ found(o.data); return; }
+      if (o.status === 404){
+        show('No record',
+          'We have no record of <strong>' + esc(v) + '</strong>. Check the ID against the certificate, ' +
+          'and if it still does not come back, email <a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID.');
+        return;
+      }
+      if (o.status === 400){
+        show('Not a certificate ID', 'That ID is not in the form we issue. Check it against the certificate and try again.');
+        return;
+      }
+      throw new Error('status ' + o.status);
+    }).catch(function(){
+      show('Could not check right now',
+        'The check did not go through. Try again in a moment, or email ' +
+        '<a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID and we will confirm it for you.');
+    }).then(function(){
+      busy = false;
+      btn.disabled = false;
+    });
   }
 
   btn.addEventListener('click', check);
