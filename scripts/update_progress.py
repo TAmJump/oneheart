@@ -31,6 +31,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 import requests
@@ -148,19 +149,75 @@ def from_markup(page):
     return rewards
 
 
+def _why(resp):
+    """A short, readable line from a non-200 body.
+
+    Kickstarter's block pages carry the reason in the text - a rate limit
+    notice, a captcha, a Cloudflare interstitial. Print enough of it to tell
+    those apart without dumping the whole page into the log.
+    """
+    text = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", resp.text[:4000])
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", html.unescape(text)).strip()
+    return text[:300] or "(empty body)"
+
+
 def fetch_rewards():
     s = requests.Session()
-    s.headers.update({"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"})
+    s.headers.update({
+        "User-Agent": UA,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                  "image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+    })
+
+    # Land on the home page first. A session that arrives straight at a project
+    # page with no cookies looks like a scraper and is refused more often.
+    try:
+        home = s.get("https://www.kickstarter.com/", timeout=30)
+        print("GET / -> %d, %d cookies" % (home.status_code, len(s.cookies)),
+              file=sys.stderr)
+    except requests.RequestException as e:
+        print("GET / failed (%s)" % e, file=sys.stderr)
+
     pages = []
     for url in (PROJECT_URL + "/rewards", PROJECT_URL):
-        try:
-            r = s.get(url, timeout=30)
+        for attempt in (1, 2, 3):
+            try:
+                r = s.get(url, timeout=30,
+                          headers={"Referer": "https://www.kickstarter.com/",
+                                   "Sec-Fetch-Site": "same-origin"})
+            except requests.RequestException as e:
+                print("fetch failed: %s (%s)" % (url, e), file=sys.stderr)
+                break
+
+            print("GET %s -> %d, %d bytes" % (url, r.status_code, len(r.content)),
+                  file=sys.stderr)
             if r.status_code == 200:
                 pages.append(r.text)
-        except requests.RequestException as e:
-            print("fetch failed: %s (%s)" % (url, e), file=sys.stderr)
+                break
+
+            print("  %s" % _why(r), file=sys.stderr)
+            # A hard block does not clear on the second try, so 403 gets one
+            # retry only; a rate limit or a hiccup is worth waiting out.
+            limit = 2 if r.status_code == 403 else 3
+            if r.status_code in (403, 429, 500, 502, 503) and attempt < limit:
+                wait = 8 * attempt
+                print("  retrying in %ds" % wait, file=sys.stderr)
+                time.sleep(wait)
+                continue
+            break
+
     if not pages:
-        raise SystemExit("could not fetch the project page")
+        raise SystemExit(
+            "could not fetch the project page - see the status codes above. "
+            "If Kickstarter is refusing this network, save the /rewards page "
+            "in a browser and run again with --html FILE.")
     return pages
 
 
