@@ -1,9 +1,10 @@
 {
-  "updated": "2026-09-03",
+  "updated": "2026-09-09",
   "source": "kickstarter",
+  "unassigned": 0,
   "artworks": {
     "1": {
-      "taken": 0,
+      "taken": 2,
       "total": 2500
     },
     "2": {
@@ -31,7 +32,7 @@
       "total": 2500
     },
     "8": {
-      "taken": 0,
+      "taken": 1,
       "total": 2500
     },
     "9": {
@@ -94,6 +95,5 @@
       "taken": 0,
       "total": 5000
     }
-  },
-  "unassigned": 0
+  }
 }
