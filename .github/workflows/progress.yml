@@ -1,8 +1,9 @@
 name: Update progress
 
 on:
-  schedule:
-    - cron: "0 21 * * *"   # 06:00 JST every day
+  # No schedule. Kickstarter answers a runner with a Cloudflare challenge, so a
+  # nightly run only ever fails. Numbers come in by hand: read the rewards page,
+  # pass them to this workflow as rewards_json.
   workflow_dispatch:
     inputs:
       rewards_json:
