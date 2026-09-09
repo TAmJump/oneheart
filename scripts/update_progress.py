@@ -149,6 +149,36 @@ def from_markup(page):
     return rewards
 
 
+def from_pasted(raw):
+    """Rewards handed over by hand, read off the page in a browser.
+
+    Accepts {"title": backers} or a list of reward objects, which is what
+    tools/rewards_from_page.js produces.
+    """
+    blob = json.loads(raw)
+    rewards = {}
+    if isinstance(blob, dict) and "rewards" in blob:
+        blob = blob["rewards"]
+    if isinstance(blob, dict):
+        for title, n in blob.items():
+            if isinstance(n, str) and n.strip().replace(",", "").isdigit():
+                n = int(n.strip().replace(",", ""))
+            if title and isinstance(n, int):
+                rewards[title] = max(n, rewards.get(title, 0))
+    elif isinstance(blob, list):
+        for r in blob:
+            if not isinstance(r, dict):
+                continue
+            title = r.get("title") or ""
+            n = r.get("backers_count", r.get("backersCount"))
+            if title and isinstance(n, int):
+                rewards[title] = max(n, rewards.get(title, 0))
+    if not rewards:
+        raise SystemExit("the pasted JSON carried no rewards")
+    print("read %d rewards from the pasted JSON" % len(rewards))
+    return rewards
+
+
 def _why(resp):
     """A short, readable line from a non-200 body.
 
@@ -291,10 +321,22 @@ def main():
     ap.add_argument("--force", action="store_true",
                     help="write even when some artworks have no matching reward")
     ap.add_argument("--html", help="parse a saved HTML file instead of fetching")
+    ap.add_argument("--json", dest="pasted",
+                    help="a JSON object of {reward title: backers}, or - to read stdin. "
+                         "Produced by tools/rewards_from_page.js")
     args = ap.parse_args()
 
-    pages = [Path(args.html).read_text()] if args.html else fetch_rewards()
-    rewards = parse(pages)
+    raw = args.pasted
+    if raw == "-":
+        raw = sys.stdin.read()
+    if raw is None:
+        raw = os.environ.get("REWARDS_JSON") or None
+
+    if raw and raw.strip():
+        rewards = from_pasted(raw.strip())
+    else:
+        pages = [Path(args.html).read_text()] if args.html else fetch_rewards()
+        rewards = parse(pages)
 
     missing = report(rewards)
     if args.check:

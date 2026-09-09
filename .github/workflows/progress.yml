@@ -5,6 +5,10 @@ on:
     - cron: "0 21 * * *"   # 06:00 JST every day
   workflow_dispatch:
     inputs:
+      rewards_json:
+        description: "Reward counts read in the browser (tools/rewards_from_page.js). Leave empty to fetch."
+        type: string
+        default: ""
       check_only:
         description: "Print how each reward maps and write nothing"
         type: boolean
@@ -31,6 +35,7 @@ jobs:
       - name: Read Kickstarter reward counts
         env:
           KS_PROJECT_URL: ${{ vars.KS_PROJECT_URL }}
+          REWARDS_JSON: ${{ inputs.rewards_json }}
         run: python scripts/update_progress.py ${{ inputs.check_only && '--check' || '' }}
 
       - name: Commit if changed
