@@ -38,10 +38,14 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "progress.json"
 
-PROJECT_URL = os.environ.get(
-    "KS_PROJECT_URL",
-    "https://www.kickstarter.com/projects/tamj/we-are-all-one-heart-23-pieces-one-world",
-).rstrip("/")
+# The workflow passes KS_PROJECT_URL through even when the repository variable
+# is not set, which arrives as an empty string rather than as a missing key -
+# so fall back on anything falsy, not just on the key being absent.
+PROJECT_URL = (os.environ.get("KS_PROJECT_URL") or
+               "https://www.kickstarter.com/projects/tamj/"
+               "we-are-all-one-heart-23-pieces-one-world").strip().rstrip("/")
+if not PROJECT_URL.startswith("http"):
+    raise SystemExit("KS_PROJECT_URL is not a URL: %r" % PROJECT_URL)
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
