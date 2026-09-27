@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Holders' Circle — ONE HEART PROJECT</title>
+<meta name="description" content="Every place in ONE HEART comes with a certificate ID. The ID opens a room: the people who put their own face into the same artworks.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#111111;
+    --dim:#3a3527;
+    --gold:#111111;
+    --coral:#E53935;
+    --line:#111111;
+    --bg:#FFD900;
+    --panel:#FFF3A8;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  html{background:var(--bg)}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.75;font-size:16px;
+  }
+  a{color:var(--gold);text-decoration:none}
+  .wrap{max-width:680px;margin:0 auto;padding:0 28px}
+
+  .topnav{border-bottom:3px solid var(--ink);padding:18px 0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+  .topnav a{color:var(--ink)}
+  .topnav a:hover{color:var(--gold)}
+
+  header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 18px}
+  h1{font-size:38px;line-height:1.15;margin:0 0 16px;font-weight:800;letter-spacing:-.02em}
+  .lede{color:var(--dim);margin:0}
+
+  main{padding:44px 0 24px}
+
+  .four{display:grid;grid-template-columns:1fr 1fr;gap:0;border:3px solid var(--ink);background:var(--ink);margin:0 0 34px}
+  .four > div{background:var(--bg);padding:22px 24px}
+  .four h3{font-size:13px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--coral);margin:0 0 8px}
+  .four p{font-size:15px;line-height:1.65;color:var(--dim);margin:0}
+
+  .form{background:var(--panel);border:3px solid var(--ink);padding:28px;margin:0 0 22px}
+  .form h2{font-size:18px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+  .form .sub{font-size:14px;color:var(--dim);margin:0 0 20px}
+  label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold);margin-bottom:10px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  input[type=text],input[type=email]{
+    flex:1 1 260px;min-width:0;padding:14px 16px;font-size:16px;
+    font-family:inherit;color:var(--ink);background:#fff;
+    border:2px solid var(--ink);border-radius:0
+  }
+  input:focus{outline:2px solid var(--gold);outline-offset:-2px}
+  button{
+    padding:14px 30px;background:var(--ink);color:#f2f0ec;border:0;
+    font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;cursor:pointer
+  }
+  button:hover{background:var(--coral)}
+  button[disabled]{opacity:.55;cursor:default}
+  .hint{font-size:13px;color:var(--dim);margin:14px 0 0}
+  .field{margin:0 0 18px}
+  .step{display:none}
+  .step.show{display:block}
+
+  .result{
+    margin-top:22px;padding:20px 24px;border:3px solid var(--ink);
+    background:#fff;font-size:15px;line-height:1.7;display:none
+  }
+  .result.show{display:block}
+  .result .k{
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    font-weight:700;color:var(--coral);margin-bottom:8px
+  }
+  .result .cid{font-size:19px;font-weight:800;letter-spacing:.02em;word-break:break-all}
+
+  section{padding:36px 0;border-top:2px solid var(--ink)}
+  h2{font-size:18px;font-weight:700;margin:0 0 12px;letter-spacing:-.01em}
+  p{margin:0 0 14px}
+  .muted{color:var(--dim)}
+  ul{margin:0 0 14px;padding-left:22px;color:var(--dim)}
+  li{margin:0 0 8px}
+
+  footer{background:var(--ink);color:#b8b4ad;padding:44px 0 56px;font-size:13px;line-height:1.9;margin-top:28px}
+  footer a{color:#FFD900}
+  footer .brand{color:#FFD900;font-weight:700;letter-spacing:.02em;font-size:15px;margin-bottom:6px}
+  .fnav{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px}
+
+  @media (max-width:600px){
+    h1{font-size:29px}
+    .four{grid-template-columns:1fr}
+    .form{padding:22px 20px}
+    button{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="wrap"><a href="/">&larr; One Heart Project</a></div>
+</div>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">One Heart Project</p>
+    <h1>The holders' circle</h1>
+    <p class="lede">Every place carries a certificate ID. The ID is not only proof that your piece is in the artwork &mdash; it is how you get into the room with the other people who put their own face into the same picture.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="four">
+    <div>
+      <h3>Holders only</h3>
+      <p>A group no one enters without an ID. Everyone inside it is in the artworks.</p>
+    </div>
+    <div>
+      <h3>Once a month</h3>
+      <p>A call across time zones. You find out who else is holding up the same picture.</p>
+    </div>
+    <div>
+      <h3>In your country</h3>
+      <p>Gatherings held where holders actually are, not only in Tokyo.</p>
+    </div>
+    <div>
+      <h3>Notices first</h3>
+      <p>Dates and invitations reach holders before anyone else, and later through an app only holders can open.</p>
+    </div>
+  </div>
+
+  <div class="form">
+    <h2>I have a certificate ID</h2>
+    <p class="sub">Check the ID first, then leave an address so the invitations reach you.</p>
+
+    <div class="step show" id="s1">
+      <label for="cid">Certificate ID</label>
+      <div class="row">
+        <input type="text" id="cid" placeholder="OHP00-0000-00000000" autocomplete="off" spellcheck="false">
+        <button id="go" type="button">Check</button>
+      </div>
+      <p class="hint">Printed in the upper right of your certificate, and encoded in the QR code beside it. To read the record itself, use <a href="/verify/">certificate verification</a>.</p>
+    </div>
+
+    <div class="step" id="s2">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="country">Where you are</label>
+        <input type="text" id="country" placeholder="Country or city" autocomplete="country-name">
+      </div>
+      <div class="row">
+        <button id="join" type="button">Join the circle</button>
+      </div>
+      <p class="hint">Used for circle notices and nothing else. You can ask to be taken off the list at any time.</p>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="form">
+    <h2>My ID has not arrived yet</h2>
+    <p class="sub">Certificate IDs for Kickstarter places are issued after the campaign closes on 8 October 2026, once the survey goes out. Leave an address now and the ID and the first invitation arrive together.</p>
+    <div class="field">
+      <label for="email2">Email</label>
+      <input type="email" id="email2" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="row">
+      <button id="join2" type="button">Put me on the list</button>
+    </div>
+    <div class="result" id="result2"></div>
+  </div>
+
+  <section>
+    <h2>Where this stands</h2>
+    <p class="muted">The circle is being built now. The monthly call starts once the first group of holders is in, and the gatherings follow the map &mdash; they happen where holders are, so the places are set by who joins. Dates are announced to holders first.</p>
+    <p class="muted">Anything on this page that is not yet running is described as a plan, not a promise. What is fixed is the record: places stay open until 30 June 2027, the artworks are made as they stand on that date, and certificates are delivered digitally by 30 September 2027.</p>
+  </section>
+
+  <section>
+    <h2>What the circle is not</h2>
+    <p class="muted">Membership carries no financial return, no ownership share, no revenue interest and no guaranteed resale value. It is a room, not an asset. This is set out in full in the <a href="/terms.html">participation terms</a>.</p>
+    <p class="muted">Questions go to <a href="mailto:info@tamjump.com">info@tamjump.com</a>.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">ONE HEART PROJECT</div>
+    Operated by TAmJ Inc., Tokyo, Japan<br>
+    <a href="mailto:info@tamjump.com">info@tamjump.com</a>
+    <div class="fnav">
+      <a href="/">Project home</a>
+      <a href="/verify/">Verify a certificate</a>
+      <a href="/ceo.html">You are the CEO</a>
+      <a href="/terms.html">Participation Terms</a>
+      <a href="https://www.kickstarter.com/projects/tamj/we-are-all-one-heart-23-pieces-one-world?ref=4k7z69">Kickstarter</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var BASE = 'https://7xw0uwnpra.execute-api.ap-northeast-1.amazonaws.com';
+  var VERIFY = BASE + '/verify';
+  var NOTIFY = BASE + '/notify';
+  var RE_ID = /^OHP\d{2}-\d{4}-[0-9A-F]{8}$/;
+  var RE_MAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  var held = '';
+  var busy = false;
+
+  function el(id){ return document.getElementById(id); }
+
+  function esc(v){
+    return String(v).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function show(box, kind, html){
+    box.innerHTML = '<div class="k">' + kind + '</div>' + html;
+    box.classList.add('show');
+  }
+
+  function tidy(v){ return v.replace(/[\s\u3000]+/g, '').toUpperCase(); }
+
+  function post(url, payload){
+    return fetch(url, {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify(payload)
+    }).then(function(res){
+      return res.json().catch(function(){ return {}; }).then(function(d){
+        return {status: res.status, data: d};
+      });
+    });
+  }
+
+  function lock(b, on){ busy = on; b.disabled = on; }
+
+  // step 1 - check the certificate ID
+  function check(){
+    if (busy) return;
+    var box = el('result');
+    var v = tidy(el('cid').value);
+    if (!v){
+      show(box, 'Enter an ID', 'Type the certificate ID printed on your certificate, then press Check.');
+      return;
+    }
+    el('cid').value = v;
+    if (!RE_ID.test(v)){
+      show(box, 'Not a certificate ID',
+        'A certificate ID looks like <strong>OHP17-0042-9C3F1AB2</strong>. Check the upper right of your certificate and try again.');
+      return;
+    }
+
+    lock(el('go'), true);
+    show(box, 'Checking', 'Looking up ' + esc(v) + '.');
+
+    post(VERIFY, {certId: v}).then(function(o){
+      if (o.status === 200 && o.data && o.data.ok){
+        held = v;
+        show(box, 'ID confirmed',
+          '<div class="cid">' + esc(v) + '</div>' +
+          'This place is on the record. Leave an address below and the circle notices will reach you.');
+        el('s1').classList.remove('show');
+        el('s2').classList.add('show');
+        el('email').focus();
+        return;
+      }
+      if (o.status === 404){
+        show(box, 'No record',
+          'We have no record of <strong>' + esc(v) + '</strong> yet. IDs for Kickstarter places are issued after 8 October 2026 &mdash; use the second form below, or email <a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID.');
+        return;
+      }
+      if (o.status === 400){
+        show(box, 'Not a certificate ID', 'That ID is not in the form we issue. Check it against the certificate and try again.');
+        return;
+      }
+      throw new Error('status ' + o.status);
+    }).catch(function(){
+      show(box, 'Could not check right now',
+        'The check did not go through. Try again in a moment, or email <a href="mailto:info@tamjump.com">info@tamjump.com</a> with the ID.');
+    }).then(function(){
+      lock(el('go'), false);
+    });
+  }
+
+  // step 2 - register the holder
+  function joinHolder(){
+    if (busy) return;
+    var box = el('result');
+    var email = String(el('email').value || '').trim().toLowerCase();
+    var country = String(el('country').value || '').trim().slice(0, 60);
+    if (!RE_MAIL.test(email)){
+      show(box, 'Check the address', 'That address does not look complete. Correct it and try again.');
+      return;
+    }
+
+    lock(el('join'), true);
+    show(box, 'Sending', 'Adding you to the circle.');
+
+    post(NOTIFY, {email: email, source: 'holders|' + held + (country ? '|' + country : '')}).then(function(o){
+      if (o.status === 200 && o.data && o.data.ok){
+        show(box, o.data.already ? 'Already on the list' : 'You are in',
+          'The next notice goes to this address. Nothing else is needed from you today.');
+        el('s2').classList.remove('show');
+        return;
+      }
+      if (o.status === 400){
+        show(box, 'Check the address', 'That address was not accepted. Correct it and try again.');
+        return;
+      }
+      throw new Error('status ' + o.status);
+    }).catch(function(){
+      show(box, 'Could not send right now',
+        'Try again in a moment, or email <a href="mailto:info@tamjump.com">info@tamjump.com</a> with your ID and we will add you.');
+    }).then(function(){
+      lock(el('join'), false);
+    });
+  }
+
+  // waiting list - no ID yet
+  function joinWaiting(){
+    if (busy) return;
+    var box = el('result2');
+    var email = String(el('email2').value || '').trim().toLowerCase();
+    if (!RE_MAIL.test(email)){
+      show(box, 'Check the address', 'That address does not look complete. Correct it and try again.');
+      return;
+    }
+
+    lock(el('join2'), true);
+    show(box, 'Sending', 'Putting you on the list.');
+
+    post(NOTIFY, {email: email, source: 'holders-waiting'}).then(function(o){
+      if (o.status === 200 && o.data && o.data.ok){
+        show(box, o.data.already ? 'Already on the list' : 'You are on the list',
+          'Your certificate ID and the first invitation arrive together, after 8 October 2026.');
+        return;
+      }
+      if (o.status === 400){
+        show(box, 'Check the address', 'That address was not accepted. Correct it and try again.');
+        return;
+      }
+      throw new Error('status ' + o.status);
+    }).catch(function(){
+      show(box, 'Could not send right now',
+        'Try again in a moment, or email <a href="mailto:info@tamjump.com">info@tamjump.com</a>.');
+    }).then(function(){
+      lock(el('join2'), false);
+    });
+  }
+
+  el('go').addEventListener('click', check);
+  el('cid').addEventListener('keydown', function(e){ if (e.key === 'Enter') check(); });
+  el('join').addEventListener('click', joinHolder);
+  el('country').addEventListener('keydown', function(e){ if (e.key === 'Enter') joinHolder(); });
+  el('join2').addEventListener('click', joinWaiting);
+  el('email2').addEventListener('keydown', function(e){ if (e.key === 'Enter') joinWaiting(); });
+
+  var q = new URLSearchParams(window.location.search).get('id');
+  if (q){ el('cid').value = q; check(); }
+})();
+</script>
+
+</body>
+</html>
