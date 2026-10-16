@@ -267,7 +267,7 @@
 
       <div class="msg" id="msg"></div>
 
-      <p class="fineprint">By paying you agree to the <a href="/terms.html" style="text-decoration:underline">Participation Terms</a>. Places are limited and are filled in the order they are paid. Your email address is used only for this project and is not sold or passed to anyone else. Write to <a href="mailto:info@tamjump.com" style="text-decoration:underline">info@tamjump.com</a> with any question.</p>
+      <p class="fineprint">By paying you agree to the <a href="/terms.html" style="text-decoration:underline">Participation Terms</a>. Places are limited and are filled in the order they are paid. Your email address is used only for this project and is not sold or passed to anyone else. Write to <a href="mailto:animalb001@gmail.com" style="text-decoration:underline">animalb001@gmail.com</a> with any question.</p>
     </div>
   </div>
 </section>
@@ -297,7 +297,7 @@
         <button class="btn" type="button" id="up-send" style="margin-top:6px" disabled>Send this photograph</button>
         <div class="msg" id="up-msg"></div>
       </div>
-      <p class="fineprint">You can also send it later from <a href="/portrait/" style="text-decoration:underline">oneheart.tamjump.com/portrait</a> with the order number below, or email it to <a href="mailto:info@tamjump.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">info@tamjump.com</a>.</p>
+      <p class="fineprint">You can also send it later from <a href="/portrait/" style="text-decoration:underline">oneheart.tamjump.com/portrait</a> with the order number below, or email it to <a href="mailto:animalb001@gmail.com?subject=ONE%20HEART%20portrait" style="text-decoration:underline">animalb001@gmail.com</a>.</p>
       <dl class="receipt">
         <dt>Order</dt><dd id="r-order">—</dd>
         <dt>Artworks</dt><dd id="r-art">—</dd>
@@ -317,13 +317,11 @@
 <footer>
   <div class="wrap">
     <div class="brand">ONE HEART PROJECT</div>
-    Operated by TAmJ Inc., Tokyo, Japan<br>
-    <a href="mailto:info@tamjump.com">info@tamjump.com</a>
+    Operated by Tiger.J.Bob
     <div class="fnav">
       <a href="/ceo.html">You are the CEO</a>
       <a href="/terms.html">Participation Terms</a>
       <a href="/verify/">Verify a certificate</a>
-      <a href="https://tamjump.com/">TAmJ Inc.</a>
     </div>
   </div>
 </footer>
@@ -544,7 +542,7 @@ function clearMsg(){ $("msg").style.display = "none"; }
 
 /* ---- Square ---- */
 (function(){
-  if (!window.Square){ say("Payment could not be loaded. Please reload the page, or write to info@tamjump.com."); return; }
+  if (!window.Square){ say("Payment could not be loaded. Please reload the page, or write to animalb001@gmail.com."); return; }
   var payments = window.Square.payments(SQ_APP_ID, SQ_LOCATION_ID);
   payments.card({
     style: {
@@ -557,7 +555,7 @@ function clearMsg(){ $("msg").style.display = "none"; }
   }).then(function(){
     refresh();
   }).catch(function(){
-    say("The card form could not be shown. Please reload the page, or write to info@tamjump.com.");
+    say("The card form could not be shown. Please reload the page, or write to animalb001@gmail.com.");
   });
 })();
 
@@ -605,7 +603,7 @@ $("pay").addEventListener("click", function(){
   }).catch(function(err){
     busy = false;
     refresh();
-    say(err.message || "Something went wrong. Nothing has been charged. Please try again, or write to info@tamjump.com.");
+    say(err.message || "Something went wrong. Nothing has been charged. Please try again, or write to animalb001@gmail.com.");
   });
 });
 

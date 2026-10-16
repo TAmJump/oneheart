@@ -514,7 +514,7 @@
           if (e === "bad_image") { throw new Error("That file could not be read as a photograph."); }
           if (e === "name_long") { throw new Error("That name is longer than " + NAME_MAX + " characters."); }
           if (e === "name_chars") { throw new Error("That name uses characters we cannot put on the reverse. Colour emoji are the usual reason."); }
-          throw new Error("The photograph was not received. Please try again, or email it to info@tamjump.com.");
+          throw new Error("The photograph was not received. Please try again, or email it to animalb001@gmail.com.");
         }
         done = true;
         stop();

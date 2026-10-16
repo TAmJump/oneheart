@@ -83,11 +83,11 @@ function receipt(list,id,n,amt){
     +'May the days ahead be kind to you, and may something good find its way to you.'
     +'</td></tr>'
     +'<tr><td style="'+F+';font-size:15px;font-weight:800;color:#111111;padding-bottom:2px">JIN OSHITA</td></tr>'
-    +'<tr><td style="'+F+';font-size:13px;color:#3a3527;padding-bottom:30px">Founder, ONE HEART PROJECT &middot; TAmJ Inc., Tokyo</td></tr>'
+    +'<tr><td style="'+F+';font-size:13px;color:#3a3527;padding-bottom:30px">Founder, ONE HEART PROJECT &middot; Tiger.J.Bob</td></tr>'
     +'<tr><td><table role="presentation" cellpadding="0" cellspacing="0"><tr>'+btn(SITE+"/","SEE THE PROJECT")+btn(SITE+"/verify/","VERIFY A CERTIFICATE")+'</tr></table></td></tr>'
     +'<tr><td style="border-top:1px solid #111111;padding-top:18px;'+F+';font-size:12px;line-height:1.8;color:#3a3527">'
     +'Places close on 30 June 2027. Artworks are made and delivered by 30 September 2027.<br>'
-    +'TAmJ Inc., Tokyo &middot; <a href="mailto:'+process.env.NOTIFY_TO+'" style="color:#3a3527">'+process.env.NOTIFY_TO+'</a> &middot; <a href="'+SITE+'/terms.html" style="color:#3a3527">Terms</a>'
+    +'Tiger.J.Bob &middot; <a href="mailto:'+process.env.NOTIFY_TO+'" style="color:#3a3527">'+process.env.NOTIFY_TO+'</a> &middot; <a href="'+SITE+'/terms.html" style="color:#3a3527">Terms</a>'
     +'</td></tr></table></td></tr></table></body></html>';
 }
 function receiptText(list,id,n,amt){
@@ -96,9 +96,9 @@ function receiptText(list,id,n,amt){
     +"YOUR PLACES\n"+list.map(p=>P2(p.artwork)+" "+TT(p.artwork)+" - piece "+p.piece+" (row "+p.row+", column "+p.col+")").join("\n")
     +"\n\nOrder: "+id+"\nPlaces: "+n+"\nPaid: "+YEN(amt)
     +"\n\nSEND ONE PORTRAIT\nOne clear photograph of a face, JPEG or PNG, at least 800x800 pixels. The same photograph is used for every artwork you have joined unless you tell us otherwise.\nUpload it here: "+SITE+"/portrait/?id="+id+"\nOr reply to this email with the photograph attached.\n\n"
-    +"THANK YOU\n\nThank you for taking your place. Somewhere in the world, other faces are arriving next to yours. You will never meet most of them, and they will never know your name, yet you are holding up the same picture together. That is the whole idea, and today it moved forward because of you.\n\nMay the days ahead be kind to you, and may something good find its way to you.\n\nJIN OSHITA\nFounder, ONE HEART PROJECT - TAmJ Inc., Tokyo\n\n"
+    +"THANK YOU\n\nThank you for taking your place. Somewhere in the world, other faces are arriving next to yours. You will never meet most of them, and they will never know your name, yet you are holding up the same picture together. That is the whole idea, and today it moved forward because of you.\n\nMay the days ahead be kind to you, and may something good find its way to you.\n\nJIN OSHITA\nFounder, ONE HEART PROJECT - Tiger.J.Bob\n\n"
     +"Places close on 30 June 2027. Artworks are made and delivered by 30 September 2027.\n"
-    +SITE+"\nTAmJ Inc., Tokyo - "+process.env.NOTIFY_TO+"\n";
+    +SITE+"\nTiger.J.Bob - "+process.env.NOTIFY_TO+"\n";
 }
 async function notify(d,ip){
   const email=String(d.email||"").trim().toLowerCase();
@@ -345,7 +345,7 @@ function gotHtml(id,list,nm,withCard){
     +'<tr><td style="'+F+';font-size:15px;line-height:1.7;color:#111111;padding-bottom:22px">Your piece is yours to look at whenever you like. Open the page below with this order number and email address, and it comes back. If you sent the wrong photograph, send another one the same way and it replaces this one. Places close on 30 June 2027.</td></tr>'
     +'<tr><td style="padding-bottom:28px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td><a href="'+SITE+'/portrait/?id='+id+'" style="'+F+';display:inline-block;background:#FFFFFF;border:2px solid #111111;color:#111111;text-decoration:none;font-size:12px;font-weight:800;letter-spacing:.14em;padding:14px 20px">SEE YOUR PIECE</a></td></tr></table></td></tr>'
     +'<tr><td style="border-top:1px solid #111111;padding-top:18px;'+F+';font-size:12px;line-height:1.8;color:#3a3527">'
-    +'TAmJ Inc., Tokyo &middot; <a href="mailto:'+process.env.NOTIFY_TO+'" style="color:#3a3527">'+process.env.NOTIFY_TO+'</a>'
+    +'Tiger.J.Bob &middot; <a href="mailto:'+process.env.NOTIFY_TO+'" style="color:#3a3527">'+process.env.NOTIFY_TO+'</a>'
     +'</td></tr></table></td></tr></table></body></html>';
 }
 const NAME_MAX=24;
@@ -384,7 +384,7 @@ async function card(d){
     .map(x=>({a:parseInt(x.split(":")[0],10),i:parseInt(x.split(":")[1],10)}));
   const lines=ps.map(p=>P2(p.a)+" "+TT(p.a)+" piece "+p.i).join("\n");
   await sendWithCard(email,"Your piece - ONE HEART order "+id.slice(0,8),
-    "WE ARE ALL ONE HEART\n\nYour piece is attached: the front carries your face, the back carries your name.\n\nYOUR PLACES\n"+lines+(nm?"\n\nName on the reverse: "+nm:"")+"\n\nOrder: "+id+"\n\nYour piece is yours to look at whenever you like. Open "+SITE+"/portrait/?id="+id+" with this order number and email address, and it comes back.\n\n"+SITE+"\nTAmJ Inc., Tokyo - "+process.env.NOTIFY_TO+"\n",
+    "WE ARE ALL ONE HEART\n\nYour piece is attached: the front carries your face, the back carries your name.\n\nYOUR PLACES\n"+lines+(nm?"\n\nName on the reverse: "+nm:"")+"\n\nOrder: "+id+"\n\nYour piece is yours to look at whenever you like. Open "+SITE+"/portrait/?id="+id+" with this order number and email address, and it comes back.\n\n"+SITE+"\nTiger.J.Bob - "+process.env.NOTIFY_TO+"\n",
     gotHtml(id,ps,nm,true),buf);
   return r(200,{ok:true});
 }
@@ -420,7 +420,7 @@ async function portrait(d,ip){
     .map(x=>({a:parseInt(x.split(":")[0],10),i:parseInt(x.split(":")[1],10)}));
   const lines=ps.map(p=>P2(p.a)+" "+TT(p.a)+" piece "+p.i).join("\n");
   await send(email,"Your portrait is in - ONE HEART order "+id.slice(0,8),
-    "WE ARE ALL ONE HEART\n\nYour portrait is in.\n\nNothing else is needed from you. Your photograph will be placed in the position held for you.\n\nYOUR PLACES\n"+lines+(nm?"\n\nName on the reverse: "+nm:"")+"\n\nOrder: "+id+"\n\nYour piece is yours to look at whenever you like. Open "+SITE+"/portrait/?id="+id+" with this order number and email address, and it comes back. If you sent the wrong photograph, send another one the same way and it replaces this one. Places close on 30 June 2027.\n\n"+SITE+"\nTAmJ Inc., Tokyo - "+process.env.NOTIFY_TO+"\n",
+    "WE ARE ALL ONE HEART\n\nYour portrait is in.\n\nNothing else is needed from you. Your photograph will be placed in the position held for you.\n\nYOUR PLACES\n"+lines+(nm?"\n\nName on the reverse: "+nm:"")+"\n\nOrder: "+id+"\n\nYour piece is yours to look at whenever you like. Open "+SITE+"/portrait/?id="+id+" with this order number and email address, and it comes back. If you sent the wrong photograph, send another one the same way and it replaces this one. Places close on 30 June 2027.\n\n"+SITE+"\nTiger.J.Bob - "+process.env.NOTIFY_TO+"\n",
     gotHtml(id,ps,nm));
   await mail("ONE HEART - portrait "+id.slice(0,8),
     email+"\n"+key+"\n"+Math.round(buf.length/1024)+" KB\nname: "+(nm||"-")+"\n"+lines+"\n"+now+"\n"+ip);
