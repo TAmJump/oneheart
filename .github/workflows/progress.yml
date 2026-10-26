@@ -43,7 +43,7 @@ jobs:
         if: ${{ !inputs.check_only }}
         run: |
           git config user.name "tamjump"
-          git config user.email "tiger@tamjump.com"
+          git config user.email "tiger@115en.com"
           git add data/progress.json
           git diff --staged --quiet && echo "no change" && exit 0
           git commit -m "progress: daily update"

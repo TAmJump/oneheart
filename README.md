@@ -2,6 +2,6 @@
 
 Project site and participation terms for the ONE HEART PROJECT.
 
-https://oneheart.tamjump.com/
+https://oneheart.115en.com/
 
 Operated by TAmJ Inc., Tokyo, Japan.

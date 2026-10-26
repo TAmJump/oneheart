@@ -47,7 +47,7 @@ print(json.dumps({
   "data": {"type": "payment", "id": pid, "object": {"payment": {
     "id": pid, "status": "COMPLETED",
     "amount_money": {"amount": 1500, "currency": "JPY"},
-    "buyer_email_address": "check@tamjump.com",
+    "buyer_email_address": "info@115en.com",
     "note": "webhook_live_check.sh",
     "created_at": "2026-09-07T00:00:00Z",
     "application_details": {"application_id": app}}}}}, separators=(",", ":")))
@@ -112,7 +112,7 @@ if [ "$ALERT" = "1" ]; then
   echo "the receiver waits six seconds before it decides, so this is slow."
   B2="$(body "$APP" "$PAYID")"
   check "signed, our application, no order" 200 "orphan recorded" "$B2" "$(sign "$B2")" || fail=1
-  echo "  a notice for $PAYID should be in info@tamjump.com"
+  echo "  a notice for $PAYID should be in info@115en.com"
   aws dynamodb delete-item --table-name oneheart-payments \
     --key "{\"paymentId\":{\"S\":\"$PAYID\"}}" --region "$REGION"
   echo "  test row $PAYID removed from oneheart-payments"

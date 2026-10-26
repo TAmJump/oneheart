@@ -104,7 +104,7 @@ FOOT = f"""
   <div>
     <div class="date">2026.09.08 TUE</div>
     <div class="k">Kickstarterで公開<br>WE ARE ALL ONE HEART</div>
-    <div class="u">oneheart.tamjump.com</div>
+    <div class="u">oneheart.115en.com</div>
   </div>
 </div>"""
 

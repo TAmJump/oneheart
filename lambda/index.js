@@ -13,7 +13,7 @@ async function tok(){
   return TOK;
 }
 const CS="UTF-8";
-const SITE="https://oneheart.tamjump.com";
+const SITE="https://oneheart.115en.com";
 const TITLES=["ONE EARTH","DIFFERENT","WHO AM I?","WONDER","DREAMER","MY VOICE","LOVE INSIDE","FACE TO FACE","CONNECTED","LIFELINE","HEART KING","KING OF ME","BURNING SOUL","COURAGE","FADING AWAY","ETERNAL","TWO MINDS","THE UNKNOWN","HOPE STAR","ANGEL WITHIN","DEVIL WITHIN","THE EYE","ONE HEART"];
 const TT=n=>TITLES[n-1]||("ARTWORK "+n);
 const P2=n=>(n<10?"0":"")+n;

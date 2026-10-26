@@ -38,8 +38,8 @@ from botocore.exceptions import ClientError
 REGION = "ap-northeast-1"
 ORDERS, SLOTS, CERTS = "oneheart-orders", "oneheart-slots", "oneheart-certs"
 BUCKET = "oneheart-portraits"
-SITE = "https://oneheart.tamjump.com"
-FROM = "info@tamjump.com"
+SITE = "https://oneheart.115en.com"
+FROM = "info@115en.com"
 
 TITLES = [
     "ONE EARTH", "DIFFERENT", "WHO AM I?", "WONDER", "DREAMER", "MY VOICE",

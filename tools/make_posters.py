@@ -130,7 +130,7 @@ PATTERNS = [
             "子どもたちから寄せられたアイデアをもとに制作されました。同社は、そこから生じた"
             "価値を発案者本人に帰属させる仕組みの構築を目指しており、本プロジェクトはその"
             "第一段階にあたります。\n\n"
-            "お問い合わせ：タムジ株式会社　info@tamjump.com"
+            "お問い合わせ：タムジ株式会社　info@115en.com"
         ),
     },
 ]
@@ -157,7 +157,7 @@ html,body{{width:{W}px;height:{H}px}}
     <div class="txt">
       <div class="date" style="font-size:20px">2026.09.08 TUE</div>
       <div class="k" style="font-size:25px">Kickstarterで公開<br>1枠 500円・23作品</div>
-      <div class="u" style="font-size:16px">oneheart.tamjump.com</div>
+      <div class="u" style="font-size:16px">oneheart.115en.com</div>
     </div>
   </div>
 </div></body></html>"""

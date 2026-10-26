@@ -74,7 +74,7 @@ def footer(c, qr, k_size, v_size, note_size, url_size, gap=24):
     </div>
     <div style="font-family:'Inter';font-weight:700;font-size:{v_size}px;color:#3a3527;
                 margin-top:12px">{c['cta_v']}</div>
-    <div class="url" style="font-size:{url_size}px;margin-top:10px">oneheart.tamjump.com</div>
+    <div class="url" style="font-size:{url_size}px;margin-top:10px">oneheart.115en.com</div>
   </div>
 </div>"""
 

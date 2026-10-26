@@ -83,7 +83,7 @@ global.fetch = async () => squareShouldFail
 process.env.SLOTS = "slots";
 process.env.ORDERS = "orders";
 process.env.TABLE = "signups";
-process.env.ORIGIN = "https://oneheart.tamjump.com";
+process.env.ORIGIN = "https://oneheart.115en.com";
 process.env.SQ_LOCATION = "L";
 process.env.TOKEN_PARAM = "/p";
 

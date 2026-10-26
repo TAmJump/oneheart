@@ -4,13 +4,13 @@ Description: ONE HEART PROJECT - participation backend (notify, Square order, po
 Parameters:
   SiteOrigin:
     Type: String
-    Default: https://oneheart.tamjump.com
+    Default: https://oneheart.115en.com
   NotifyTo:
     Type: String
-    Default: info@tamjump.com
+    Default: info@115en.com
   NotifyFrom:
     Type: String
-    Default: info@tamjump.com
+    Default: info@115en.com
   SquareLocationId:
     Type: String
     Default: LH3WP4241WJEV

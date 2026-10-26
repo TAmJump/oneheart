@@ -110,7 +110,7 @@ BAR = f"""
   <div class="id">
     <div class="b">ONE HEART<small>CHILDREN CEO PROJECT</small></div>
     <div class="t">22のアイデアから生まれたキャラクターを、アートから商品へ。世界へ。未来へ。<br>
-    2026.09.08 TUE — 10.08 THU ／ Kickstarter ／ oneheart.tamjump.com</div>
+    2026.09.08 TUE — 10.08 THU ／ Kickstarter ／ oneheart.115en.com</div>
   </div>
   <div class="kpi">
     <div><div class="n">22</div><div class="l">CHARACTERS</div></div>

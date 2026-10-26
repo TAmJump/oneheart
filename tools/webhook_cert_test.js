@@ -12,7 +12,7 @@ const KEY = "test-webhook-signature-key";
 const APP = "sq0idp-TESTAPPID";
 
 Object.assign(process.env, {
-  ORIGIN: "https://oneheart.tamjump.com",
+  ORIGIN: "https://oneheart.115en.com",
   TABLE: "signups", ORDERS: "orders", SLOTS: "slots",
   CERTS: "certs", PAYMENTS: "payments",
   BUCKET: "bucket", NOTIFY_TO: "info@example.com", NOTIFY_FROM: "info@example.com",

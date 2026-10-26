@@ -133,7 +133,7 @@ BAR = f"""
   <figure class="qr"><img src="{QR}"></figure>
   <div class="id">
     <div class="b">ONE HEART<small>CHILDREN CEO PROJECT</small></div>
-    <div class="t">2026.09.08 TUE — 10.08 THU ／ Kickstarter ／ oneheart.tamjump.com</div>
+    <div class="t">2026.09.08 TUE — 10.08 THU ／ Kickstarter ／ oneheart.115en.com</div>
   </div>
   <div class="kpi">
     <div><div class="n">23</div><div class="l">ARTWORKS</div></div>
